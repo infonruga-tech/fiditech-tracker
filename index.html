@@ -89,6 +89,25 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 .pipe-body{padding:8px;min-height:60px;}
 .deal-card{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:border-color .15s,background .15s;}
 .deal-card:hover{border-color:var(--amber);background:var(--bg4);}
+.deal-stale{border-color:rgba(168,64,64,.5)!important;background:rgba(168,64,64,.04)!important;}
+.deal-overdue{border-color:rgba(192,85,85,.8)!important;}
+.deal-alert{display:flex;align-items:center;gap:5px;font-size:10px;font-family:var(--mono);margin-top:6px;padding:3px 7px;border-radius:4px;line-height:1.4;}
+.dal-stale{background:rgba(168,64,64,.12);color:#cc5555;}
+.dal-warn{background:rgba(192,120,64,.15);color:#c07840;}
+.dal-ok{background:rgba(61,148,96,.1);color:#52b87a;}
+.dal-none{background:var(--bg4);color:var(--text3);}
+.piva-warn{background:rgba(168,64,64,.12);border:1px solid rgba(168,64,64,.3);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--red2);margin-top:10px;display:none;}
+.piva-ok{background:rgba(61,148,96,.08);border:1px solid rgba(61,148,96,.25);border-radius:var(--r);padding:10px 14px;font-size:13px;color:var(--green2);margin-top:10px;display:none;}
+.tag-wrap{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;}
+.tag{padding:3px 10px;border-radius:10px;font-size:11px;background:var(--bg4);color:var(--text2);border:1px solid var(--border2);cursor:pointer;transition:all .15s;}
+.tag:hover{border-color:var(--amber);color:var(--amber2);}
+.tag.sel{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber2);}
+.sede-row{display:flex;gap:8px;align-items:center;margin-bottom:8px;}
+.sede-row .f-input{flex:1;}
+.btn-link{background:transparent;border:none;color:var(--amber2);font-size:12px;cursor:pointer;font-family:var(--font);padding:0;text-decoration:underline;}
+.remarketing-box{background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);padding:12px 14px;margin-bottom:10px;}
+.remarketing-title{font-size:12px;font-weight:500;color:var(--amber2);margin-bottom:6px;}
+.remarketing-body{font-size:12px;color:var(--text2);line-height:1.6;}
 .deal-cname{font-size:13px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .deal-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
 .deal-val{font-size:12px;font-weight:500;font-family:var(--mono);margin-top:4px;}
@@ -279,9 +298,17 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 <!-- MODAL TRATTATIVA -->
 <div class="overlay" id="deal-modal">
-  <div class="modal">
+  <div class="modal" style="max-width:560px;">
     <div class="modal-title" id="deal-modal-title">Nuova trattativa</div>
     <div class="f-row"><label class="f-label">Nome cliente / azienda</label><input class="f-input" id="f-client" placeholder="Es. Officine Rossi Srl"></div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">P.IVA</label><input class="f-input" id="f-piva" placeholder="01234567890" maxlength="11" oninput="checkPiva(this.value)"></div>
+      <div class="f-row"><label class="f-label">Codice Fiscale</label><input class="f-input" id="f-cf" placeholder="RSSMRA80A01H501U" maxlength="16"></div>
+    </div>
+    <div id="piva-feedback" class="piva-warn"></div>
+    <div class="f-row" style="margin-top:4px;"><label class="f-label">Indirizzo sede principale</label><input class="f-input" id="f-addr" placeholder="Es. Via Roma 10, 20100 Milano (MI)"></div>
+    <div id="sedi-extra"></div>
+    <button class="btn-link" onclick="addSede()" style="margin-bottom:12px;">+ Aggiungi sede aggiuntiva</button>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Prodotto</label>
         <select class="f-select" id="f-prod">
@@ -310,16 +337,46 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Zona cliente</label><input class="f-input" id="f-zone" placeholder="Es. Milano (MI)"></div>
-      <div class="f-row"><label class="f-label">Probabilità</label>
+      <div class="f-row"><label class="f-label">Probabilita</label>
         <select class="f-select" id="f-prob">
-          <option value="low">Bassa (0–30%)</option>
-          <option value="med" selected>Media (30–70%)</option>
-          <option value="high">Alta (70–100%)</option>
+          <option value="low">Bassa (0-30%)</option>
+          <option value="med" selected>Media (30-70%)</option>
+          <option value="high">Alta (70-100%)</option>
         </select>
       </div>
     </div>
-    <div class="f-row"><label class="f-label">Prossimo follow-up</label><input class="f-input" type="date" id="f-next"></div>
-    <div class="f-row"><label class="f-label">Note / stato attuale</label><textarea class="f-textarea" id="f-notes" placeholder="Cosa è successo nell'ultimo contatto? Quali obiezioni? Prossimo step?"></textarea></div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Data prossimo passo</label><input class="f-input" type="date" id="f-next"></div>
+      <div class="f-row"><label class="f-label">Azione prossimo passo</label>
+        <select class="f-select" id="f-next-action">
+          <option value="">- seleziona -</option>
+          <option>Chiamata di follow-up</option>
+          <option>Invio offerta</option>
+          <option>Sopralluogo</option>
+          <option>Presentazione proposta</option>
+          <option>Richiesta documenti</option>
+          <option>Firma contratto</option>
+          <option>Incontro con decisore</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Note / stato attuale</label><textarea class="f-textarea" id="f-notes" placeholder="Cosa e successo nell'ultimo contatto? Quali obiezioni? Prossimo step?"></textarea></div>
+    <div id="rejection-section" style="display:none;">
+      <div class="f-row">
+        <label class="f-label">Motivo rifiuto - tag remarketing</label>
+        <div class="tag-wrap" id="rejection-tags">
+          <span class="tag" onclick="toggleTag(this,'prezzo_alto')">Prezzo alto</span>
+          <span class="tag" onclick="toggleTag(this,'non_decide')">Non decide ora</span>
+          <span class="tag" onclick="toggleTag(this,'concorrente')">Va con concorrente</span>
+          <span class="tag" onclick="toggleTag(this,'non_interessato')">Non interessato</span>
+          <span class="tag" onclick="toggleTag(this,'finanziamento')">Problema finanziamento</span>
+          <span class="tag" onclick="toggleTag(this,'tecnico')">Problema tecnico</span>
+          <span class="tag" onclick="toggleTag(this,'rimandato')">Rimandato (torna)</span>
+          <span class="tag" onclick="toggleTag(this,'prodotto_mancante')">Prodotto non disponibile</span>
+        </div>
+      </div>
+      <div class="f-row"><label class="f-label">Dettaglio rifiuto</label><textarea class="f-textarea" id="f-rejection-note" rows="2" placeholder="Es. Vuole FV con accumulo 10kWh - ricontattare quando disponibile"></textarea></div>
+    </div>
     <div class="modal-footer">
       <button class="btn" onclick="closeDealModal()">Annulla</button>
       <button class="btn btn-primary" onclick="saveDeal()" id="deal-save-btn">Salva</button>
@@ -359,8 +416,8 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // ============================================================
 // CONFIG — sostituisci con i tuoi dati Supabase
 // ============================================================
-const SUPA_URL = 'https://emgfuujluqliuogkyfys.supabase.co';
-const SUPA_KEY = 'sb_publishable_9lgVhSf2f1r3OHDacXKRPw_vDYg4noX';
+const SUPA_URL = 'https://TUO-PROGETTO.supabase.co';
+const SUPA_KEY = 'TUA-ANON-KEY'; // usa la anon key pubblica
 // NOTA: per sicurezza totale, usa una Edge Function Supabase
 // come proxy. Per iniziare, la anon key va bene con le RLS policy.
 // ============================================================
@@ -552,7 +609,29 @@ function renderPipeline() {
 function dealCard(d) {
   const ag = d.agente || {};
   const init = ag.avatar || (ag.nome||'?').substring(0,2).toUpperCase();
-  return `<div class="deal-card" onclick="openDetail('${d.id}')">
+  const now = new Date();
+  const updated = d.updated_at ? new Date(d.updated_at) : null;
+  const followup = d.next_followup ? new Date(d.next_followup) : null;
+  const daysSince = updated ? Math.floor((now - updated) / 86400000) : 999;
+  const isStale = daysSince >= 7;
+  const isOverdue = followup && followup < now;
+  const nextAction = d.next_action || '';
+
+  let alertHtml = '';
+  if (isOverdue) {
+    alertHtml = `<div class="deal-alert dal-stale">⚠ Passo scaduto il ${followup.toLocaleDateString('it-IT')}</div>`;
+  } else if (isStale && !followup) {
+    alertHtml = `<div class="deal-alert dal-stale">⏸ Ferma da ${daysSince} giorni</div>`;
+  } else if (followup) {
+    const action = nextAction ? ` — ${nextAction}` : '';
+    alertHtml = `<div class="deal-alert dal-ok">→ ${followup.toLocaleDateString('it-IT')}${action}</div>`;
+  } else {
+    alertHtml = `<div class="deal-alert dal-none">! Nessun prossimo passo</div>`;
+  }
+
+  const cardClass = (isOverdue || (isStale && !followup)) ? 'deal-card deal-stale' : 'deal-card';
+
+  return `<div class="${cardClass}" onclick="openDetail('${d.id}')">
     <div class="deal-cname">${d.client_name}</div>
     <div class="deal-row">
       <span class="pill ${PROD_P[d.prodotto]||'p-fid'}">${PROD[d.prodotto]||d.prodotto}</span>
@@ -560,6 +639,7 @@ function dealCard(d) {
       ${ME.ruolo==='direttore' ? `<span class="adot" style="background:var(--amber-bg);color:var(--amber2);font-size:8px">${init}</span>` : ''}
     </div>
     <div class="deal-val" style="color:${STAGE_CLR[d.stage]||'var(--text2)'}">€${(d.valore_stimato||0).toLocaleString('it-IT')}</div>
+    ${alertHtml}
   </div>`;
 }
 
@@ -590,8 +670,11 @@ function openDetail(id) {
     <div class="df"><div class="df-label">Valore stimato</div><div class="df-val" style="color:var(--amber2)">€${(d.valore_stimato||0).toLocaleString('it-IT')}</div></div>
     <div class="df"><div class="df-label">Probabilità</div><div class="df-val"><span class="pill ${PROB_P[d.probabilita]}">${PROB_L[d.probabilita]}</span></div></div>
     <div class="df"><div class="df-label">Zona cliente</div><div class="df-val">${d.zona_cliente||'—'}</div></div>
-    <div class="df"><div class="df-label">Follow-up</div><div class="df-val">${d.next_followup||'Non impostato'}</div></div>
+    <div class="df"><div class="df-label">P.IVA</div><div class="df-val" style="font-family:var(--mono)">${d.piva||'—'}</div></div>
+    <div class="df"><div class="df-label">Prossimo passo</div><div class="df-val">${d.next_followup ? new Date(d.next_followup).toLocaleDateString('it-IT') : 'Non impostato'}${d.next_action ? ' — '+d.next_action : ''}</div></div>
+    <div class="df"><div class="df-label">Indirizzo</div><div class="df-val">${d.indirizzo||'—'}</div></div>
     <div class="df" style="grid-column:1/-1"><div class="df-label">Note</div><div class="df-val" style="font-weight:400;font-size:13px;line-height:1.6">${d.note||'—'}</div></div>
+    ${d.rejection_tags ? '<div class="df" style="grid-column:1/-1"><div class="df-label">Motivi rifiuto</div><div class="df-val" style="font-size:12px;color:var(--red2)">'+d.rejection_tags.split(',').join(' · ')+(d.rejection_note ? ' — '+d.rejection_note : '')+'</div></div>' : ''}
   `;
   document.getElementById('d-ai').innerHTML = genAI(d);
   const canEdit = ME.ruolo === 'direttore' || d.agente_id === ME.id;
@@ -649,7 +732,12 @@ function openDealModal() {
   editingDealId = null;
   document.getElementById('deal-modal-title').textContent = 'Nuova trattativa';
   document.getElementById('deal-save-btn').textContent = 'Salva';
-  ['f-client','f-val','f-zone','f-notes','f-next'].forEach(id => document.getElementById(id).value = '');
+  ['f-client','f-piva','f-cf','f-addr','f-val','f-zone','f-notes','f-next','f-rejection-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('f-next-action').value = '';
+  document.getElementById('sedi-extra').innerHTML = '';
+  document.getElementById('piva-feedback').style.display = 'none';
+  document.getElementById('rejection-section').style.display = 'none';
+  document.querySelectorAll('#rejection-tags .tag').forEach(t=>t.classList.remove('sel'));
   document.getElementById('f-stage').value = '0';
   document.getElementById('f-prob').value = 'med';
   if (ME.ruolo !== 'direttore') document.getElementById('f-agent').value = ME.id;
@@ -671,6 +759,10 @@ function editDeal(id) {
   document.getElementById('f-prob').value = d.probabilita;
   document.getElementById('f-next').value = d.next_followup||'';
   document.getElementById('f-notes').value = d.note||'';
+  if(document.getElementById('f-piva')) document.getElementById('f-piva').value = d.piva||'';
+  if(document.getElementById('f-cf')) document.getElementById('f-cf').value = d.codice_fiscale||'';
+  if(document.getElementById('f-addr')) document.getElementById('f-addr').value = d.indirizzo||'';
+  if(document.getElementById('f-next-action')) document.getElementById('f-next-action').value = d.next_action||'';
   document.getElementById('deal-modal').classList.add('open');
 }
 
@@ -678,9 +770,16 @@ function closeDealModal() { document.getElementById('deal-modal').classList.remo
 
 async function saveDeal() {
   const agenteId = document.getElementById('f-agent').value || ME.id;
+  const piva = document.getElementById('f-piva').value.trim();
+  const sediExtra = Array.from(document.querySelectorAll('.sede-extra-input')).map(i=>i.value.trim()).filter(Boolean);
+  const rejTags = Array.from(document.querySelectorAll('#rejection-tags .tag.sel')).map(t=>t.dataset.tag||t.textContent).join(',');
   const data = {
     agente_id: agenteId,
     client_name: document.getElementById('f-client').value.trim() || 'Cliente',
+    piva: piva,
+    codice_fiscale: document.getElementById('f-cf').value.trim(),
+    indirizzo: document.getElementById('f-addr').value.trim(),
+    sedi_aggiuntive: sediExtra.length ? JSON.stringify(sediExtra) : null,
     prodotto: document.getElementById('f-prod').value,
     valore_stimato: parseInt(document.getElementById('f-val').value)||0,
     stage: parseInt(document.getElementById('f-stage').value),
@@ -688,6 +787,9 @@ async function saveDeal() {
     zona_cliente: document.getElementById('f-zone').value.trim(),
     note: document.getElementById('f-notes').value.trim(),
     next_followup: document.getElementById('f-next').value || null,
+    next_action: document.getElementById('f-next-action').value || null,
+    rejection_tags: rejTags || null,
+    rejection_note: document.getElementById('f-rejection-note')?.value?.trim() || null,
   };
   if (editingDealId) {
     await updateDeal(editingDealId, data);
@@ -804,11 +906,108 @@ function renderInsights() {
     if (overdue.length > 0) html += insCard('⏰ Follow-up scaduti', `${overdue.length} trattative con follow-up scaduto: ${overdue.map(d=>d.client_name).join(', ')}. Contatta gli agenti responsabili oggi.`, 'var(--orange2)');
   }
 
-  el.innerHTML = html || '<div class="ins-card"><div class="ins-body" style="color:var(--text2)">Nessuna criticità rilevata. Ottimo lavoro.</div></div>';
+  const remarketingHtml = getRemarketingInsights();
+  el.innerHTML = remarketingHtml + (html || '<div class="ins-card"><div class="ins-body" style="color:var(--text2)">Nessuna criticità rilevata. Ottimo lavoro.</div></div>');
 }
 
 function insCard(title, body, clr) {
   return `<div class="ins-card"><div class="ins-title" style="color:${clr}">${title}</div><div class="ins-body">${body}</div></div>`;
+}
+
+
+// ============================================================
+// PIVA CHECK + SEDI + TAGS
+// ============================================================
+let sedeCount = 0;
+
+function addSede() {
+  sedeCount++;
+  const wrap = document.getElementById('sedi-extra');
+  const row = document.createElement('div');
+  row.className = 'sede-row';
+  row.id = 'sede-row-' + sedeCount;
+  row.innerHTML = `<input class="f-input sede-extra-input" placeholder="Es. Via Verdi 5, 10100 Torino (TO)"><button class="btn-link" onclick="removeSede(${sedeCount})" style="color:var(--red2);text-decoration:none;font-size:16px;line-height:1;">✕</button>`;
+  wrap.appendChild(row);
+}
+
+function removeSede(n) {
+  const el = document.getElementById('sede-row-' + n);
+  if (el) el.remove();
+}
+
+function toggleTag(el, key) {
+  el.classList.toggle('sel');
+  el.dataset.tag = key;
+}
+
+async function checkPiva(val) {
+  const fb = document.getElementById('piva-feedback');
+  if (!val || val.length < 11) { fb.style.display='none'; return; }
+  if (!/^[0-9]{11}$/.test(val)) {
+    fb.className = 'piva-warn'; fb.textContent = 'P.IVA non valida — deve essere 11 cifre numeriche.'; fb.style.display='block'; return;
+  }
+  // Check duplicates in Supabase
+  try {
+    const existing = await sbFetch('trattative?piva=eq.' + val + '&stage=gte.0&select=*,agente:agenti_tracker(nome)');
+    if (existing && existing.length > 0) {
+      const d = existing[0];
+      const ag = d.agente || {};
+      const stageLabel = ['Contatto iniziale','Sopralluogo','Offerta inviata','Trattativa','Chiusa vinta'][d.stage] || '—';
+      fb.className = 'piva-warn';
+      fb.innerHTML = `⚠ P.IVA gia presente: <strong>${d.client_name}</strong> — assegnata a <strong>${ag.nome||'—'}</strong> — fase: <strong>${stageLabel}</strong>. Verifica prima di procedere.`;
+      fb.style.display = 'block';
+      // Send notification to director
+      await notifyDuplicate(d, ag.nome||'—', val);
+    } else {
+      fb.className = 'piva-ok'; fb.textContent = '✓ P.IVA non presente in archivio.'; fb.style.display='block';
+    }
+  } catch(e) { fb.style.display='none'; }
+}
+
+async function notifyDuplicate(existingDeal, agenteName, piva) {
+  try {
+    await insertLog({
+      agente_id: ME.id,
+      tipo: 'Duplicato rilevato',
+      nota: `P.IVA ${piva} gia in lavorazione: ${existingDeal.client_name} (agente: ${agenteName})`
+    });
+  } catch(e) {}
+}
+
+// Show/hide rejection section based on stage
+document.addEventListener('change', function(e) {
+  if (e.target.id === 'f-stage') {
+    const isLost = e.target.value === '-1';
+    document.getElementById('rejection-section').style.display = isLost ? 'block' : 'none';
+  }
+});
+
+// ============================================================
+// REMARKETING INSIGHT
+// ============================================================
+function getRemarketingInsights() {
+  const lost = deals.filter(d => d.stage === -1 && d.rejection_tags);
+  if (!lost.length) return '';
+  const tagCount = {};
+  const tagDeals = {};
+  lost.forEach(d => {
+    (d.rejection_tags||'').split(',').forEach(t => {
+      t = t.trim(); if (!t) return;
+      tagCount[t] = (tagCount[t]||0)+1;
+      if (!tagDeals[t]) tagDeals[t] = [];
+      tagDeals[t].push(d.client_name);
+    });
+  });
+  const sorted = Object.entries(tagCount).sort((a,b)=>b[1]-a[1]);
+  if (!sorted.length) return '';
+  const top = sorted.slice(0,3);
+  let html = '<div class="remarketing-box"><div class="remarketing-title">🎯 Opportunita remarketing</div><div class="remarketing-body">';
+  top.forEach(([tag,count]) => {
+    const label = {prezzo_alto:'Prezzo alto',non_decide:'Non decide ora',concorrente:'Va con concorrente',non_interessato:'Non interessato',finanziamento:'Problema finanziamento',tecnico:'Problema tecnico',rimandato:'Rimandato (torna)',prodotto_mancante:'Prodotto non disponibile'}[tag] || tag;
+    html += `<strong>${count} cliente${count>1?'i':'e'}</strong> ha rifiutato per: <em>${label}</em> (${tagDeals[tag].slice(0,3).join(', ')}${tagDeals[tag].length>3?' e altri':''})<br>`;
+  });
+  html += '</div></div>';
+  return html;
 }
 
 // Enter on login

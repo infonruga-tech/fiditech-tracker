@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiditech — Sales Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f0f0f; --bg2:#141414; --bg3:#1a1a1a; --bg4:#222; --bg5:#2a2a2a;
+  --border:#252525; --border2:#2e2e2e; --border3:#383838;
+  --text:#e2e0d8; --text2:#888; --text3:#555; --text4:#3a3a3a;
+  --amber:#c8982a; --amber2:#e8b84a; --amber-bg:rgba(200,152,42,.1); --amber-border:rgba(200,152,42,.25);
+  --green:#3d9460; --green2:#52b87a; --green-bg:rgba(61,148,96,.1);
+  --red:#a84040; --red2:#cc5555; --red-bg:rgba(168,64,64,.1);
+  --blue:#3a6faa; --blue2:#5090cc; --blue-bg:rgba(58,111,170,.1);
+  --orange:#a06030; --orange2:#c07840; --orange-bg:rgba(160,96,48,.1);
+  --purple:#7050a0; --purple2:#9070c0; --purple-bg:rgba(112,80,160,.1);
+  --font:'DM Sans',sans-serif; --mono:'DM Mono',monospace;
+  --r:8px; --r2:12px;
+}
+html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;}
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar{width:4px;height:4px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--bg5);border-radius:4px;}
+
+/* ---- LOGIN ---- */
+#login-screen{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;}
+.login-box{width:380px;padding:40px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);}
+.login-logo{font-size:11px;font-family:var(--mono);letter-spacing:.15em;color:var(--amber);text-transform:uppercase;margin-bottom:6px;}
+.login-title{font-size:22px;font-weight:500;margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--text2);margin-bottom:28px;}
+.login-label{font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;}
+.login-input{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 12px;color:var(--text);font-family:var(--font);font-size:14px;outline:none;margin-bottom:14px;}
+.login-input:focus{border-color:var(--amber);}
+.login-btn{width:100%;background:var(--amber);color:#000;border:none;border-radius:var(--r);padding:11px;font-size:14px;font-weight:600;font-family:var(--font);cursor:pointer;letter-spacing:.02em;}
+.login-btn:hover{background:var(--amber2);}
+.login-err{color:var(--red2);font-size:12px;margin-top:8px;display:none;}
+
+/* ---- LAYOUT ---- */
+#app{display:none;height:100vh;display:none;flex-direction:column;}
+#app.visible{display:flex;}
+
+.topbar{display:flex;align-items:center;gap:0;padding:0 20px;height:48px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.topbar-logo{font-size:11px;font-family:var(--mono);letter-spacing:.12em;color:var(--amber);text-transform:uppercase;margin-right:20px;}
+.topbar-tabs{display:flex;height:100%;gap:0;}
+.topbar-tab{padding:0 16px;font-size:13px;cursor:pointer;color:var(--text2);background:transparent;border:none;font-family:var(--font);border-bottom:2px solid transparent;height:100%;display:flex;align-items:center;transition:all .15s;}
+.topbar-tab:hover{color:var(--text);}
+.topbar-tab.active{color:var(--amber2);border-bottom-color:var(--amber);}
+.topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
+.user-chip{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);}
+.user-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:var(--amber-bg);color:var(--amber2);border:1px solid var(--amber-border);}
+.logout-btn{background:transparent;border:none;color:var(--text3);cursor:pointer;font-size:12px;font-family:var(--font);}
+.logout-btn:hover{color:var(--text2);}
+
+.main{flex:1;overflow:hidden;display:flex;flex-direction:column;}
+.view{display:none;flex:1;overflow-y:auto;padding:20px;}
+.view.active{display:block;}
+
+/* ---- COMPONENTS ---- */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;}
+.page-title{font-size:16px;font-weight:500;}
+.page-sub{font-size:12px;color:var(--text2);font-family:var(--mono);margin-top:2px;}
+
+.btn{background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:7px 14px;font-size:13px;cursor:pointer;color:var(--text);font-family:var(--font);transition:all .15s;white-space:nowrap;}
+.btn:hover{background:var(--bg3);}
+.btn-primary{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber2);}
+.btn-primary:hover{background:rgba(200,152,42,.18);}
+.btn-success{background:var(--green-bg);border-color:rgba(61,148,96,.3);color:var(--green2);}
+.btn-danger{background:var(--red-bg);border-color:rgba(168,64,64,.3);color:var(--red2);}
+.btn-sm{padding:4px 10px;font-size:12px;}
+
+/* Stats */
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px;}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;}
+.stat-label{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.stat-val{font-size:24px;font-weight:500;}
+.stat-meta{font-size:11px;color:var(--text3);margin-top:3px;}
+
+/* Pipeline */
+.pipe-wrap{overflow-x:auto;padding-bottom:8px;}
+.pipe-cols{display:grid;grid-template-columns:repeat(5,minmax(170px,1fr));gap:8px;min-width:900px;}
+.pipe-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
+.pipe-head{padding:9px 12px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);display:flex;justify-content:space-between;align-items:center;}
+.pipe-body{padding:8px;min-height:60px;}
+.deal-card{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:border-color .15s,background .15s;}
+.deal-card:hover{border-color:var(--amber);background:var(--bg4);}
+.deal-cname{font-size:13px;font-weight:500;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.deal-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+.deal-val{font-size:12px;font-weight:500;font-family:var(--mono);margin-top:4px;}
+.pipe-total{padding:3px 8px 7px;font-size:10px;font-family:var(--mono);color:var(--text3);}
+.pipe-empty{padding:16px 8px;text-align:center;font-size:11px;color:var(--text4);}
+
+/* Pills */
+.pill{padding:2px 7px;border-radius:10px;font-size:10px;font-weight:500;white-space:nowrap;}
+.p-fv{background:var(--amber-bg);color:var(--amber2);}
+.p-en{background:var(--blue-bg);color:var(--blue2);}
+.p-led{background:var(--green-bg);color:var(--green2);}
+.p-tlc{background:var(--orange-bg);color:var(--orange2);}
+.p-fid{background:var(--purple-bg);color:var(--purple2);}
+.p-low{background:var(--red-bg);color:var(--red2);}
+.p-med{background:var(--amber-bg);color:var(--amber2);}
+.p-high{background:var(--green-bg);color:var(--green2);}
+
+/* Agent dot */
+.adot{width:20px;height:20px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0;}
+
+/* Modal */
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;display:none;align-items:center;justify-content:center;padding:16px;}
+.overlay.open{display:flex;}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r2);padding:24px;width:500px;max-width:100%;max-height:90vh;overflow-y:auto;}
+.modal-title{font-size:15px;font-weight:500;color:var(--amber2);margin-bottom:18px;}
+.f-row{margin-bottom:13px;}
+.f-label{display:block;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.f-input,.f-select,.f-textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:9px 11px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;appearance:none;}
+.f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(--amber);}
+.f-select option{background:var(--bg2);}
+.f-textarea{min-height:80px;resize:vertical;}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.modal-footer{display:flex;gap:8px;justify-content:flex-end;margin-top:18px;}
+
+/* Detail */
+.detail{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--r);padding:18px;margin-top:14px;display:none;}
+.detail.open{display:block;}
+.detail-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+.detail-name{font-size:16px;font-weight:500;}
+.detail-x{background:transparent;border:none;color:var(--text2);cursor:pointer;font-size:20px;line-height:1;}
+.detail-fields{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.df{background:var(--bg3);border-radius:6px;padding:10px 12px;}
+.df-label{font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;}
+.df-val{font-size:13px;font-weight:500;}
+.ai-box{background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);padding:12px 14px;}
+.ai-head{font-size:10px;font-family:var(--mono);letter-spacing:.1em;color:var(--amber);text-transform:uppercase;margin-bottom:6px;}
+.ai-body{font-size:13px;color:var(--text2);line-height:1.7;}
+.detail-btns{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+
+/* Team */
+.team-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.team-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;}
+.team-av{width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;margin-bottom:10px;}
+.team-name{font-size:14px;font-weight:500;}
+.team-role{font-size:12px;color:var(--text2);margin-bottom:4px;}
+.team-zone{font-size:11px;color:var(--text3);font-family:var(--mono);margin-bottom:10px;}
+.team-kpis{display:flex;gap:6px;margin-top:10px;}
+.team-kpi{background:var(--bg3);border-radius:6px;padding:7px 10px;flex:1;text-align:center;}
+.team-kpi-v{font-size:16px;font-weight:500;font-family:var(--mono);}
+.team-kpi-l{font-size:10px;color:var(--text3);margin-top:2px;}
+.pbar-wrap{margin-top:10px;}
+.pbar-top{display:flex;justify-content:space-between;font-size:11px;color:var(--text2);margin-bottom:4px;}
+.pbar-track{background:var(--bg4);border-radius:4px;height:4px;}
+.pbar-fill{height:4px;border-radius:4px;transition:width .6s;}
+
+/* Log */
+.log-item{display:flex;gap:12px;padding:9px 0;border-bottom:1px solid var(--border);}
+.log-item:last-child{border-bottom:none;}
+.log-date{font-family:var(--mono);font-size:11px;color:var(--text3);min-width:90px;margin-top:2px;}
+.log-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;margin-top:5px;}
+.log-text{flex:1;font-size:13px;line-height:1.5;}
+.log-agent{font-size:11px;color:var(--text3);}
+
+/* Insights */
+.ins-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:14px;margin-bottom:10px;}
+.ins-title{font-size:13px;font-weight:500;margin-bottom:6px;}
+.ins-body{font-size:13px;color:var(--text2);line-height:1.7;}
+
+/* Loading */
+.loader{text-align:center;padding:40px;color:var(--text3);font-size:13px;font-family:var(--mono);}
+
+/* Responsive */
+@media(max-width:600px){
+  .stat-row{grid-template-columns:repeat(2,1fr);}
+  .team-grid{grid-template-columns:1fr;}
+  .f-grid{grid-template-columns:1fr;}
+  .detail-fields{grid-template-columns:1fr;}
+  .topbar-tab span.hide-sm{display:none;}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">Fiditech Srl</div>
+    <div class="login-title">Sales Tracker</div>
+    <div class="login-sub">Accedi con le tue credenziali</div>
+    <label class="login-label">Email</label>
+    <input class="login-input" type="email" id="login-email" placeholder="nome@fiditech.it" autocomplete="email">
+    <label class="login-label">Password</label>
+    <input class="login-input" type="password" id="login-pwd" placeholder="••••••••" autocomplete="current-password">
+    <button class="login-btn" onclick="doLogin()">Accedi</button>
+    <div class="login-err" id="login-err">Credenziali non valide. Riprova.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-logo">Fiditech</div>
+    <div class="topbar-tabs">
+      <button class="topbar-tab active" onclick="switchView('pipeline')">Pipeline</button>
+      <button class="topbar-tab" onclick="switchView('team')" id="tab-team">Team</button>
+      <button class="topbar-tab" onclick="switchView('log')">Log</button>
+      <button class="topbar-tab" onclick="switchView('insight')" id="tab-insight">Insight</button>
+    </div>
+    <div class="topbar-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="top-av">??</div>
+        <span id="top-name" style="font-size:12px;"></span>
+      </div>
+      <button class="logout-btn" onclick="doLogout()">Esci</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <!-- PIPELINE -->
+    <div class="view active" id="v-pipeline">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Trattative</div>
+          <div class="page-sub" id="pipe-sub">caricamento...</div>
+        </div>
+        <button class="btn btn-primary" onclick="openDealModal()">+ Nuova trattativa</button>
+      </div>
+      <div class="stat-row" id="stat-row">
+        <div class="stat-card"><div class="stat-label">Pipeline aperta</div><div class="stat-val" id="s-tot">€0</div><div class="stat-meta">valore stimato</div></div>
+        <div class="stat-card"><div class="stat-label">Trattative attive</div><div class="stat-val" id="s-open">0</div><div class="stat-meta">in corso</div></div>
+        <div class="stat-card"><div class="stat-label">Chiuse vinte</div><div class="stat-val" style="color:var(--green2)" id="s-won">0</div><div class="stat-meta">contratti firmati</div></div>
+        <div class="stat-card"><div class="stat-label">Tasso chiusura</div><div class="stat-val" id="s-rate">—</div><div class="stat-meta">vinte / totali</div></div>
+      </div>
+      <div class="pipe-wrap"><div class="pipe-cols" id="pipe-cols"></div></div>
+      <div class="detail" id="detail">
+        <div class="detail-top">
+          <div class="detail-name" id="d-name"></div>
+          <button class="detail-x" onclick="closeDetail()">✕</button>
+        </div>
+        <div class="detail-fields" id="d-fields"></div>
+        <div class="ai-box"><div class="ai-head">Analisi AI — cosa fare adesso</div><div class="ai-body" id="d-ai"></div></div>
+        <div class="detail-btns" id="d-btns"></div>
+      </div>
+    </div>
+
+    <!-- TEAM (solo direttore) -->
+    <div class="view" id="v-team">
+      <div class="page-header"><div class="page-title">Il team</div></div>
+      <div class="team-grid" id="team-grid"></div>
+      <div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-top:14px;">
+        <div style="font-size:13px;font-weight:500;color:var(--amber2);margin-bottom:10px;">Protocollo monitoraggio settimanale</div>
+        <div style="font-size:13px;color:var(--text2);line-height:2;">
+          🗓 <strong style="color:var(--text)">Lunedì</strong> — WhatsApp a tutti: quanti appuntamenti questa settimana?<br>
+          📊 <strong style="color:var(--text)">Mercoledì</strong> — aggiornamento trattative. Chi non aggiorna in 48h → chiamata diretta.<br>
+          📞 <strong style="color:var(--text)">Venerdì</strong> — call 15 min: chiuso, bloccato, piano settimana prossima.<br>
+          📋 <strong style="color:var(--text)">Fine mese</strong> — review contratti firmati vs target. Pipeline mese successivo.<br>
+          ⚡ <strong style="color:var(--text)">Regola</strong> — trattativa senza update da 7+ giorni = persa. Chiedi sempre uno stato.
+        </div>
+      </div>
+    </div>
+
+    <!-- LOG -->
+    <div class="view" id="v-log">
+      <div class="page-header">
+        <div class="page-title">Log attività</div>
+        <button class="btn btn-primary" onclick="openLogModal()">+ Aggiungi nota</button>
+      </div>
+      <div id="log-list"><div class="loader">Caricamento...</div></div>
+    </div>
+
+    <!-- INSIGHT -->
+    <div class="view" id="v-insight">
+      <div class="page-header"><div class="page-title">Insight</div></div>
+      <div id="insight-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TRATTATIVA -->
+<div class="overlay" id="deal-modal">
+  <div class="modal">
+    <div class="modal-title" id="deal-modal-title">Nuova trattativa</div>
+    <div class="f-row"><label class="f-label">Nome cliente / azienda</label><input class="f-input" id="f-client" placeholder="Es. Officine Rossi Srl"></div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Prodotto</label>
+        <select class="f-select" id="f-prod">
+          <option value="fv">Fotovoltaico</option>
+          <option value="en">Energia</option>
+          <option value="led">Relamping LED</option>
+          <option value="tlc">TLC</option>
+          <option value="fid">Multi-settore</option>
+        </select>
+      </div>
+      <div class="f-row" id="f-agent-row"><label class="f-label">Agente</label>
+        <select class="f-select" id="f-agent"></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Valore stimato €</label><input class="f-input" type="number" id="f-val" placeholder="5000"></div>
+      <div class="f-row"><label class="f-label">Fase</label>
+        <select class="f-select" id="f-stage">
+          <option value="0">Contatto iniziale</option>
+          <option value="1">Sopralluogo / analisi</option>
+          <option value="2">Offerta inviata</option>
+          <option value="3">Trattativa</option>
+          <option value="4">Chiusa vinta</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Zona cliente</label><input class="f-input" id="f-zone" placeholder="Es. Milano (MI)"></div>
+      <div class="f-row"><label class="f-label">Probabilità</label>
+        <select class="f-select" id="f-prob">
+          <option value="low">Bassa (0–30%)</option>
+          <option value="med" selected>Media (30–70%)</option>
+          <option value="high">Alta (70–100%)</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Prossimo follow-up</label><input class="f-input" type="date" id="f-next"></div>
+    <div class="f-row"><label class="f-label">Note / stato attuale</label><textarea class="f-textarea" id="f-notes" placeholder="Cosa è successo nell'ultimo contatto? Quali obiezioni? Prossimo step?"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeDealModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveDeal()" id="deal-save-btn">Salva</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL LOG -->
+<div class="overlay" id="log-modal">
+  <div class="modal">
+    <div class="modal-title">Aggiungi nota / attività</div>
+    <div class="f-grid">
+      <div class="f-row" id="lf-agent-row"><label class="f-label">Agente</label><select class="f-select" id="lf-agent"></select></div>
+      <div class="f-row"><label class="f-label">Tipo attività</label>
+        <select class="f-select" id="lf-type">
+          <option>Chiamata cliente</option>
+          <option>Appuntamento fissato</option>
+          <option>Sopralluogo effettuato</option>
+          <option>Offerta inviata</option>
+          <option>Contratto firmato</option>
+          <option>Trattativa persa</option>
+          <option>Reclutamento agente</option>
+          <option>Formazione completata</option>
+          <option>Altro</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Nota</label><textarea class="f-textarea" id="lf-note" placeholder="Cosa è successo? Qual è l'esito?"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeLogModal()">Annulla</button>
+      <button class="btn btn-primary" onclick="saveLog()">Salva nota</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ============================================================
+// CONFIG — sostituisci con i tuoi dati Supabase
+// ============================================================
+const SUPA_URL = 'https://emgfuujluqliuogkyfys.supabase.co';
+const SUPA_KEY = sb_publishable_9lgVhSf2f1r3OHDacXKRPw_vDYg4noX
+// NOTA: per sicurezza totale, usa una Edge Function Supabase
+// come proxy. Per iniziare, la anon key va bene con le RLS policy.
+// ============================================================
+
+const STAGES = ['Contatto iniziale','Sopralluogo','Offerta inviata','Trattativa','Chiusa vinta'];
+const STAGE_CLR = ['#3a6faa','#a06030','#7050a0','#c07840','#3d9460'];
+const PROD = {fv:'Fotovoltaico',en:'Energia',led:'Relamping LED',tlc:'TLC',fid:'Multi-settore'};
+const PROD_P = {fv:'p-fv',en:'p-en',led:'p-led',tlc:'p-tlc',fid:'p-fid'};
+const PROB_P = {low:'p-low',med:'p-med',high:'p-high'};
+const PROB_L = {low:'Bassa',med:'Media',high:'Alta'};
+
+// State
+let ME = null;       // agente loggato
+let ALL_AGENTS = []; // tutti gli agenti (per direttore)
+let deals = [];
+let logs = [];
+let editingDealId = null;
+
+// ============================================================
+// API HELPERS
+// ============================================================
+async function sbFetch(path, opts={}) {
+  const res = await fetch(SUPA_URL + '/rest/v1/' + path, {
+    ...opts,
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': 'application/json',
+      'Prefer': opts.prefer || 'return=representation',
+      ...(opts.headers||{})
+    }
+  });
+  if (!res.ok) {
+    const e = await res.text();
+    throw new Error(e);
+  }
+  const txt = await res.text();
+  return txt ? JSON.parse(txt) : null;
+}
+
+async function getAgents() {
+  return sbFetch('agenti_tracker?select=*&attivo=eq.true&order=nome');
+}
+
+async function getDeals(agenteId, isDirettore) {
+  const filter = isDirettore ? '' : `&agente_id=eq.${agenteId}`;
+  return sbFetch(`trattative?select=*,agente:agenti_tracker(nome,avatar)&order=updated_at.desc${filter}`);
+}
+
+async function getLogs(agenteId, isDirettore) {
+  const filter = isDirettore ? '' : `&agente_id=eq.${agenteId}`;
+  return sbFetch(`log_attivita?select=*,agente:agenti_tracker(nome,avatar)&order=created_at.desc&limit=100${filter}`);
+}
+
+async function insertDeal(data) {
+  return sbFetch('trattative', {method:'POST', body: JSON.stringify(data)});
+}
+
+async function updateDeal(id, data) {
+  return sbFetch(`trattative?id=eq.${id}`, {method:'PATCH', body: JSON.stringify(data)});
+}
+
+async function insertLog(data) {
+  return sbFetch('log_attivita', {method:'POST', body: JSON.stringify(data)});
+}
+
+// LOGIN (semplice: cerca email+password nella tabella agenti)
+// In produzione usa Supabase Auth. Per ora usiamo una tabella passwords.
+// Alternativa rapida: password uguale per tutti, differenziazione solo per email.
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pwd = document.getElementById('login-pwd').value;
+  document.getElementById('login-err').style.display = 'none';
+
+  // Password temporanea: "fiditech2025" per tutti (cambia da Supabase)
+  // In produzione: aggiungi colonna password_hash o usa Supabase Auth
+  const PASSWORD_TEMP = 'fiditech2025';
+
+  try {
+    const agents = await sbFetch(`agenti_tracker?email=eq.${encodeURIComponent(email)}&attivo=eq.true`);
+    if (!agents || agents.length === 0 || pwd !== PASSWORD_TEMP) {
+      document.getElementById('login-err').style.display = 'block';
+      return;
+    }
+    ME = agents[0];
+    ALL_AGENTS = await getAgents();
+    startApp();
+  } catch(e) {
+    document.getElementById('login-err').textContent = 'Errore connessione. Controlla la configurazione Supabase.';
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
+
+function doLogout() {
+  ME = null; deals = []; logs = [];
+  document.getElementById('app').classList.remove('visible');
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+// ============================================================
+// APP INIT
+// ============================================================
+async function startApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+
+  // Aggiorna topbar
+  document.getElementById('top-av').textContent = ME.avatar || ME.nome.substring(0,2).toUpperCase();
+  document.getElementById('top-name').textContent = ME.nome;
+
+  // Mostra/nascondi tab solo per direttore
+  const isDirettore = ME.ruolo === 'direttore';
+  document.getElementById('tab-team').style.display = isDirettore ? '' : 'none';
+  document.getElementById('tab-insight').style.display = isDirettore ? '' : 'none';
+
+  // Popola select agenti nei form
+  populateAgentSelects();
+
+  await loadData();
+}
+
+function populateAgentSelects() {
+  const isDirettore = ME.ruolo === 'direttore';
+  // Deal modal agent select
+  const fAgent = document.getElementById('f-agent');
+  const fAgentRow = document.getElementById('f-agent-row');
+  if (isDirettore) {
+    fAgent.innerHTML = ALL_AGENTS.map(a => `<option value="${a.id}">${a.nome}</option>`).join('');
+    fAgentRow.style.display = '';
+  } else {
+    fAgent.innerHTML = `<option value="${ME.id}">${ME.nome}</option>`;
+    fAgentRow.style.display = 'none';
+  }
+  // Log modal agent select
+  const lfAgent = document.getElementById('lf-agent');
+  const lfAgentRow = document.getElementById('lf-agent-row');
+  if (isDirettore) {
+    lfAgent.innerHTML = ALL_AGENTS.map(a => `<option value="${a.id}">${a.nome}</option>`).join('');
+    lfAgentRow.style.display = '';
+  } else {
+    lfAgent.innerHTML = `<option value="${ME.id}">${ME.nome}</option>`;
+    lfAgentRow.style.display = 'none';
+  }
+}
+
+async function loadData() {
+  const isDirettore = ME.ruolo === 'direttore';
+  deals = await getDeals(ME.id, isDirettore);
+  logs = await getLogs(ME.id, isDirettore);
+  renderPipeline();
+  renderStats();
+  renderLog();
+}
+
+// ============================================================
+// VIEWS
+// ============================================================
+function switchView(v) {
+  document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.topbar-tab').forEach(el => el.classList.remove('active'));
+  document.getElementById('v-' + v).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if (v === 'team') renderTeam();
+  if (v === 'insight') renderInsights();
+}
+
+// ============================================================
+// PIPELINE
+// ============================================================
+function renderPipeline() {
+  const cols = document.getElementById('pipe-cols');
+  const activeDeals = deals.filter(d => d.stage >= 0);
+  cols.innerHTML = STAGES.map((s, i) => {
+    const sd = activeDeals.filter(d => d.stage === i);
+    const tot = sd.reduce((a, d) => a + (d.valore_stimato||0), 0);
+    return `<div class="pipe-col">
+      <div class="pipe-head" style="background:${STAGE_CLR[i]}15;color:${STAGE_CLR[i]}">
+        <span>${s}</span><span style="opacity:.6">${sd.length}</span>
+      </div>
+      <div class="pipe-body">
+        ${sd.length === 0 ? '<div class="pipe-empty">—</div>' : ''}
+        ${sd.map(d => dealCard(d)).join('')}
+      </div>
+      ${tot > 0 ? `<div class="pipe-total">Σ €${tot.toLocaleString('it-IT')}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function dealCard(d) {
+  const ag = d.agente || {};
+  const init = ag.avatar || (ag.nome||'?').substring(0,2).toUpperCase();
+  return `<div class="deal-card" onclick="openDetail('${d.id}')">
+    <div class="deal-cname">${d.client_name}</div>
+    <div class="deal-row">
+      <span class="pill ${PROD_P[d.prodotto]||'p-fid'}">${PROD[d.prodotto]||d.prodotto}</span>
+      <span class="pill ${PROB_P[d.probabilita]||'p-med'}">${PROB_L[d.probabilita]||''}</span>
+      ${ME.ruolo==='direttore' ? `<span class="adot" style="background:var(--amber-bg);color:var(--amber2);font-size:8px">${init}</span>` : ''}
+    </div>
+    <div class="deal-val" style="color:${STAGE_CLR[d.stage]||'var(--text2)'}">€${(d.valore_stimato||0).toLocaleString('it-IT')}</div>
+  </div>`;
+}
+
+function renderStats() {
+  const active = deals.filter(d => d.stage >= 0 && d.stage < 4);
+  const won = deals.filter(d => d.stage === 4);
+  const total = active.reduce((a, d) => a + (d.valore_stimato||0), 0);
+  const all = deals.filter(d => d.stage >= 0);
+  const rate = all.length > 0 ? Math.round(won.length / all.length * 100) : null;
+  document.getElementById('s-tot').textContent = '€' + total.toLocaleString('it-IT');
+  document.getElementById('s-open').textContent = active.length;
+  document.getElementById('s-won').textContent = won.length;
+  document.getElementById('s-rate').textContent = rate !== null ? rate + '%' : '—';
+  document.getElementById('pipe-sub').textContent = `${all.length} trattative · €${total.toLocaleString('it-IT')} pipeline`;
+}
+
+// ============================================================
+// DETAIL
+// ============================================================
+function openDetail(id) {
+  const d = deals.find(x => x.id === id);
+  if (!d) return;
+  document.getElementById('d-name').textContent = d.client_name;
+  const ag = d.agente || {};
+  document.getElementById('d-fields').innerHTML = `
+    <div class="df"><div class="df-label">Prodotto</div><div class="df-val"><span class="pill ${PROD_P[d.prodotto]}">${PROD[d.prodotto]}</span></div></div>
+    <div class="df"><div class="df-label">Agente</div><div class="df-val">${ag.nome||'—'}</div></div>
+    <div class="df"><div class="df-label">Valore stimato</div><div class="df-val" style="color:var(--amber2)">€${(d.valore_stimato||0).toLocaleString('it-IT')}</div></div>
+    <div class="df"><div class="df-label">Probabilità</div><div class="df-val"><span class="pill ${PROB_P[d.probabilita]}">${PROB_L[d.probabilita]}</span></div></div>
+    <div class="df"><div class="df-label">Zona cliente</div><div class="df-val">${d.zona_cliente||'—'}</div></div>
+    <div class="df"><div class="df-label">Follow-up</div><div class="df-val">${d.next_followup||'Non impostato'}</div></div>
+    <div class="df" style="grid-column:1/-1"><div class="df-label">Note</div><div class="df-val" style="font-weight:400;font-size:13px;line-height:1.6">${d.note||'—'}</div></div>
+  `;
+  document.getElementById('d-ai').innerHTML = genAI(d);
+  const canEdit = ME.ruolo === 'direttore' || d.agente_id === ME.id;
+  document.getElementById('d-btns').innerHTML = canEdit ? `
+    <button class="btn btn-sm" onclick="editDeal('${d.id}')">✏️ Modifica</button>
+    <button class="btn btn-sm" onclick="advanceStage('${d.id}')">Avanza →</button>
+    <button class="btn btn-sm btn-success" onclick="winDeal('${d.id}')">✓ Vinta</button>
+    <button class="btn btn-sm btn-danger" onclick="loseDeal('${d.id}')">✕ Persa</button>
+  ` : '<span style="font-size:12px;color:var(--text3)">Solo visualizzazione</span>';
+  const panel = document.getElementById('detail');
+  panel.classList.add('open');
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+}
+
+function genAI(d) {
+  const tips = [];
+  if (!d.next_followup) tips.push('Nessun follow-up pianificato — il cliente dimenticherà. Imposta una data oggi.');
+  if (d.probabilita === 'low') tips.push('Probabilità bassa: individua l\'obiezione principale. Usa una testimonianza di un cliente simile o mostra il ROI dettagliato.');
+  if (d.stage === 2 && d.probabilita !== 'high') tips.push('Offerta inviata ma non ancora in chiusura — non aspettare che rispondano. Fissa un appuntamento di review entro 3 giorni.');
+  if (d.stage === 0) tips.push('Ancora in fase di contatto: priorità assoluta è fissare il sopralluogo entro 5 giorni.');
+  if (d.note && d.note.toLowerCase().includes('non risponde')) tips.push('Il cliente non risponde: prova WhatsApp invece del telefono, o una visita diretta senza appuntamento.');
+  if (tips.length === 0) return 'Trattativa ben impostata. Mantieni il follow-up puntuale e spingi verso la firma.';
+  return tips.map((t, i) => `<strong>${i+1}.</strong> ${t}`).join('<br>');
+}
+
+function closeDetail() { document.getElementById('detail').classList.remove('open'); }
+
+async function advanceStage(id) {
+  const d = deals.find(x => x.id === id);
+  if (!d || d.stage >= 3) return;
+  const newStage = d.stage + 1;
+  await updateDeal(id, {stage: newStage});
+  await insertLog({agente_id: d.agente_id, trattativa_id: id, tipo: 'Avanzamento fase', nota: `${d.client_name} → ${STAGES[newStage]}`});
+  await loadData(); openDetail(id);
+}
+async function winDeal(id) {
+  const d = deals.find(x => x.id === id);
+  if (!d) return;
+  await updateDeal(id, {stage: 4});
+  await insertLog({agente_id: d.agente_id, trattativa_id: id, tipo: 'Contratto firmato', nota: `🏆 ${d.client_name} — €${d.valore_stimato||0}`});
+  await loadData(); closeDetail();
+}
+async function loseDeal(id) {
+  const d = deals.find(x => x.id === id);
+  if (!d) return;
+  await updateDeal(id, {stage: -1});
+  await insertLog({agente_id: d.agente_id, trattativa_id: id, tipo: 'Trattativa persa', nota: `${d.client_name} — ${PROD[d.prodotto]||d.prodotto}`});
+  await loadData(); closeDetail();
+}
+
+// ============================================================
+// DEAL MODAL
+// ============================================================
+function openDealModal() {
+  editingDealId = null;
+  document.getElementById('deal-modal-title').textContent = 'Nuova trattativa';
+  document.getElementById('deal-save-btn').textContent = 'Salva';
+  ['f-client','f-val','f-zone','f-notes','f-next'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-stage').value = '0';
+  document.getElementById('f-prob').value = 'med';
+  if (ME.ruolo !== 'direttore') document.getElementById('f-agent').value = ME.id;
+  document.getElementById('deal-modal').classList.add('open');
+}
+
+function editDeal(id) {
+  const d = deals.find(x => x.id === id);
+  if (!d) return;
+  editingDealId = id;
+  document.getElementById('deal-modal-title').textContent = 'Modifica trattativa';
+  document.getElementById('deal-save-btn').textContent = 'Aggiorna';
+  document.getElementById('f-client').value = d.client_name;
+  document.getElementById('f-prod').value = d.prodotto;
+  document.getElementById('f-agent').value = d.agente_id;
+  document.getElementById('f-val').value = d.valore_stimato||'';
+  document.getElementById('f-stage').value = d.stage;
+  document.getElementById('f-zone').value = d.zona_cliente||'';
+  document.getElementById('f-prob').value = d.probabilita;
+  document.getElementById('f-next').value = d.next_followup||'';
+  document.getElementById('f-notes').value = d.note||'';
+  document.getElementById('deal-modal').classList.add('open');
+}
+
+function closeDealModal() { document.getElementById('deal-modal').classList.remove('open'); }
+
+async function saveDeal() {
+  const agenteId = document.getElementById('f-agent').value || ME.id;
+  const data = {
+    agente_id: agenteId,
+    client_name: document.getElementById('f-client').value.trim() || 'Cliente',
+    prodotto: document.getElementById('f-prod').value,
+    valore_stimato: parseInt(document.getElementById('f-val').value)||0,
+    stage: parseInt(document.getElementById('f-stage').value),
+    probabilita: document.getElementById('f-prob').value,
+    zona_cliente: document.getElementById('f-zone').value.trim(),
+    note: document.getElementById('f-notes').value.trim(),
+    next_followup: document.getElementById('f-next').value || null,
+  };
+  if (editingDealId) {
+    await updateDeal(editingDealId, data);
+    await insertLog({agente_id: agenteId, trattativa_id: editingDealId, tipo: 'Aggiornamento trattativa', nota: `${data.client_name} aggiornata`});
+  } else {
+    const created = await insertDeal(data);
+    const newId = Array.isArray(created) ? created[0]?.id : created?.id;
+    await insertLog({agente_id: agenteId, trattativa_id: newId||null, tipo: 'Nuova trattativa', nota: `${data.client_name} — ${PROD[data.prodotto]}`});
+  }
+  closeDealModal();
+  await loadData();
+}
+
+// ============================================================
+// LOG
+// ============================================================
+function renderLog() {
+  const el = document.getElementById('log-list');
+  if (!logs || logs.length === 0) { el.innerHTML = '<div class="loader">Nessuna attività registrata.</div>'; return; }
+  const CLR = {'Contratto firmato':'var(--green2)','Trattativa persa':'var(--red2)','Nuova trattativa':'var(--amber2)'};
+  el.innerHTML = logs.map(l => {
+    const ag = l.agente || {};
+    const date = new Date(l.created_at).toLocaleDateString('it-IT');
+    const clr = CLR[l.tipo] || 'var(--text3)';
+    return `<div class="log-item">
+      <div class="log-date">${date}</div>
+      <div class="log-dot" style="background:${clr}"></div>
+      <div class="log-text">
+        <strong>${l.tipo}</strong>${l.nota ? ' — ' + l.nota : ''}
+        <div class="log-agent">${ag.nome||''}</div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function openLogModal() { document.getElementById('log-modal').classList.add('open'); }
+function closeLogModal() { document.getElementById('log-modal').classList.remove('open'); }
+
+async function saveLog() {
+  const agenteId = document.getElementById('lf-agent').value || ME.id;
+  const data = {
+    agente_id: agenteId,
+    tipo: document.getElementById('lf-type').value,
+    nota: document.getElementById('lf-note').value.trim()
+  };
+  await insertLog(data);
+  document.getElementById('lf-note').value = '';
+  closeLogModal();
+  await loadData();
+}
+
+// ============================================================
+// TEAM (solo direttore)
+// ============================================================
+function renderTeam() {
+  const el = document.getElementById('team-grid');
+  el.innerHTML = ALL_AGENTS.map(a => {
+    const ad = deals.filter(d => d.agente_id === a.id);
+    const won = ad.filter(d => d.stage === 4).length;
+    const active = ad.filter(d => d.stage >= 0 && d.stage < 4).length;
+    const target = a.ruolo === 'direttore' ? 3 : 4;
+    const pct = Math.min(100, Math.round(won / target * 100));
+    const pclr = pct >= 70 ? 'var(--green2)' : pct >= 40 ? 'var(--amber2)' : 'var(--red2)';
+    const init = a.avatar || a.nome.substring(0,2).toUpperCase();
+    return `<div class="team-card">
+      <div class="team-av" style="background:var(--amber-bg);color:var(--amber2)">${init}</div>
+      <div class="team-name">${a.nome}</div>
+      <div class="team-role">${a.ruolo === 'direttore' ? 'Direttore Vendite' : 'Agente'}</div>
+      <div class="team-zone">${a.zona||'—'}</div>
+      <div class="team-kpis">
+        <div class="team-kpi"><div class="team-kpi-v">${active}</div><div class="team-kpi-l">trattative</div></div>
+        <div class="team-kpi"><div class="team-kpi-v" style="color:var(--green2)">${won}</div><div class="team-kpi-l">vinte</div></div>
+        <div class="team-kpi"><div class="team-kpi-v">${target}</div><div class="team-kpi-l">target</div></div>
+      </div>
+      <div class="pbar-wrap">
+        <div class="pbar-top"><span>vs target</span><span style="color:${pclr}">${pct}%</span></div>
+        <div class="pbar-track"><div class="pbar-fill" style="width:${pct}%;background:${pclr}"></div></div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ============================================================
+// INSIGHTS (solo direttore)
+// ============================================================
+function renderInsights() {
+  const el = document.getElementById('insight-body');
+  const active = deals.filter(d => d.stage >= 0 && d.stage < 4);
+  const won = deals.filter(d => d.stage === 4);
+  const lost = deals.filter(d => d.stage === -1);
+  const noFollow = active.filter(d => !d.next_followup);
+  const lowProb = active.filter(d => d.probabilita === 'low');
+
+  let html = '';
+
+  if (deals.length === 0) {
+    html = `<div class="ins-card"><div class="ins-title">🚀 Nessuna trattativa ancora</div><div class="ins-body">Gli agenti devono iniziare a inserire le loro trattative. Condividi il link del tracker e imposta la prima call di allineamento.</div></div>`;
+  } else {
+    if (noFollow.length > 0) html += insCard('⚠️ Follow-up mancanti', `${noFollow.length} trattative attive senza data di ricontatto: <strong>${noFollow.map(d=>d.client_name).join(', ')}</strong>. Ricorda agli agenti di impostare sempre un follow-up — senza data il lead si fredda.`, 'var(--red2)');
+    if (lowProb.length > 0) html += insCard('📉 Trattative a rischio', `${lowProb.length} trattative a bassa probabilità. Per ognuna: identifica l\'obiezione principale e fornisci all\'agente la risposta giusta (vedi modulo obiezioni).`, 'var(--amber2)');
+    const byAgent = {};
+    won.forEach(d => { byAgent[d.agente_id] = (byAgent[d.agente_id]||0)+1; });
+    const top = Object.entries(byAgent).sort((a,b)=>b[1]-a[1])[0];
+    if (top) {
+      const ta = ALL_AGENTS.find(a=>a.id===top[0]);
+      html += insCard('🏆 Top performer', `${ta?.nome||top[0]} ha chiuso ${top[1]} contratt${top[1]===1?'o':'i'}. Analizza il suo approccio e usalo come benchmark per il resto del team.`, 'var(--green2)');
+    }
+    const byProd = {};
+    won.forEach(d => { byProd[d.prodotto] = (byProd[d.prodotto]||0)+1; });
+    const topP = Object.entries(byProd).sort((a,b)=>b[1]-a[1])[0];
+    if (topP) html += insCard('📦 Prodotto più venduto', `${PROD[topP[0]]||topP[0]} è il prodotto con più chiusure (${topP[1]}). Concentra reclutamento e formazione su questo settore.`, 'var(--blue2)');
+    if (lost.length > won.length && deals.length >= 5) html += insCard('❌ Tasso chiusura sotto il 50%', 'Più trattative perse che vinte. Verifica: la qualifica dei lead è corretta? Il follow-up è puntuale? Le offerte sono personalizzate? Rivedi il processo con ogni agente.', 'var(--red2)');
+    const overdue = active.filter(d => d.next_followup && new Date(d.next_followup) < new Date());
+    if (overdue.length > 0) html += insCard('⏰ Follow-up scaduti', `${overdue.length} trattative con follow-up scaduto: ${overdue.map(d=>d.client_name).join(', ')}. Contatta gli agenti responsabili oggi.`, 'var(--orange2)');
+  }
+
+  el.innerHTML = html || '<div class="ins-card"><div class="ins-body" style="color:var(--text2)">Nessuna criticità rilevata. Ottimo lavoro.</div></div>';
+}
+
+function insCard(title, body, clr) {
+  return `<div class="ins-card"><div class="ins-title" style="color:${clr}">${title}</div><div class="ins-body">${body}</div></div>`;
+}
+
+// Enter on login
+document.getElementById('login-pwd').addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); });
+document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pwd').focus(); });
+</script>
+</body>
+</html>

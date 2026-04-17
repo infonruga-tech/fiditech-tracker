@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fiditech — Onboarding Agenti</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#0f0f0f;--bg2:#141414;--bg3:#1a1a1a;--bg4:#222;
+  --border:#252525;--border2:#2e2e2e;
+  --text:#e2e0d8;--text2:#888;--text3:#555;
+  --amber:#c8982a;--amber2:#e8b84a;--amber-bg:rgba(200,152,42,.1);--amber-border:rgba(200,152,42,.25);
+  --green:#3d9460;--green2:#52b87a;--green-bg:rgba(61,148,96,.1);
+  --red:#a84040;--red2:#cc5555;--red-bg:rgba(168,64,64,.1);
+  --font:'DM Sans',sans-serif;--mono:'DM Mono',monospace;--r:8px;--r2:12px;
+}
+html,body{min-height:100%;background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;}
+::-webkit-scrollbar{width:4px;}::-webkit-scrollbar-thumb{background:#2a2a2a;border-radius:4px;}
+.topbar{display:flex;align-items:center;padding:0 24px;height:48px;background:var(--bg2);border-bottom:1px solid var(--border);gap:12px;}
+.topbar-logo{font-size:11px;font-family:var(--mono);letter-spacing:.12em;color:var(--amber);text-transform:uppercase;}
+.topbar-sep{color:var(--text3);}
+.topbar-title{font-size:13px;color:var(--text2);}
+.topbar-back{margin-left:auto;background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:5px 12px;font-size:12px;color:var(--text2);cursor:pointer;font-family:var(--font);text-decoration:none;}
+.topbar-back:hover{color:var(--text);}
+.wrap{max-width:880px;margin:0 auto;padding:28px 24px;}
+.section{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r2);padding:22px;margin-bottom:18px;}
+.s-title{font-size:13px;font-weight:500;color:var(--amber2);margin-bottom:3px;}
+.s-sub{font-size:12px;color:var(--text2);margin-bottom:18px;}
+.f-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:11px;}
+.f-row{margin-bottom:0;}
+.f-label{display:block;font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:5px;}
+.f-input,.f-select,.f-textarea{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:9px 11px;color:var(--text);font-family:var(--font);font-size:13px;outline:none;}
+.f-input:focus,.f-select:focus,.f-textarea:focus{border-color:var(--amber);}
+.f-select option{background:var(--bg2);}
+.f-textarea{min-height:300px;resize:vertical;line-height:1.65;}
+.f-hint{font-size:10px;color:var(--text3);margin-top:3px;font-family:var(--mono);}
+.prev-box{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:14px;font-size:12px;line-height:1.7;color:var(--text2);white-space:pre-wrap;font-family:var(--mono);max-height:280px;overflow-y:auto;}
+.prev-subj{font-size:11px;font-family:var(--mono);color:var(--amber);margin-bottom:8px;padding-bottom:8px;border-bottom:1px solid var(--border2);}
+.btn{background:transparent;border:1px solid var(--border2);border-radius:var(--r);padding:8px 16px;font-size:13px;cursor:pointer;color:var(--text);font-family:var(--font);transition:all .15s;}
+.btn:hover{background:var(--bg3);}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn-primary{background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber2);}
+.btn-primary:hover:not(:disabled){background:rgba(200,152,42,.2);}
+.btn-success{background:var(--green-bg);border-color:rgba(61,148,96,.3);color:var(--green2);}
+.btn-sm{padding:4px 10px;font-size:11px;}
+.btn-row{display:flex;gap:10px;align-items:center;margin-top:16px;flex-wrap:wrap;}
+.st-msg{padding:10px 14px;border-radius:var(--r);font-size:13px;margin-top:12px;display:none;}
+.st-ok{background:var(--green-bg);border:1px solid rgba(61,148,96,.3);color:var(--green2);}
+.st-err{background:var(--red-bg);border:1px solid rgba(168,64,64,.3);color:var(--red2);}
+.st-load{background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber2);}
+.cfg-box{background:var(--bg3);border:1px solid var(--amber-border);border-radius:var(--r);padding:14px;margin-bottom:18px;}
+.cfg-title{font-size:11px;font-family:var(--mono);color:var(--amber);margin-bottom:10px;letter-spacing:.06em;text-transform:uppercase;}
+.a-row{display:flex;align-items:center;gap:12px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;}
+.a-av{width:34px;height:34px;border-radius:50%;background:var(--amber-bg);border:1px solid var(--amber-border);color:var(--amber2);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0;}
+.a-info{flex:1;min-width:0;}
+.a-name{font-size:13px;font-weight:500;}
+.a-meta{font-size:11px;color:var(--text2);font-family:var(--mono);}
+.a-badge{font-size:10px;padding:2px 9px;border-radius:10px;white-space:nowrap;}
+.b-pend{background:var(--amber-bg);color:var(--amber2);}
+.b-sent{background:var(--green-bg);color:var(--green2);}
+.b-off{background:var(--bg4);color:var(--text3);}
+.info-note{background:var(--bg3);border:1px solid var(--border);border-radius:var(--r);padding:11px 14px;font-size:12px;color:var(--text2);line-height:1.7;margin-bottom:16px;}
+.info-note a{color:var(--amber2);text-decoration:none;}
+.info-note code{background:var(--bg4);padding:1px 5px;border-radius:3px;font-family:var(--mono);}
+@media(max-width:600px){.f-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="topbar-logo">Fiditech</div>
+  <div class="topbar-sep">/</div>
+  <div class="topbar-title">Onboarding agenti</div>
+  <a href="index.html" class="topbar-back">← Tracker</a>
+</div>
+
+<div class="wrap">
+
+  <!-- CONFIGURAZIONE -->
+  <div class="cfg-box">
+    <div class="cfg-title">⚙️ Configurazione — da fare una volta sola</div>
+    <div class="f-grid">
+      <div class="f-row">
+        <label class="f-label">Resend API Key</label>
+        <input class="f-input" id="cfg-resend" type="password" placeholder="re_xxxxxxxxxxxxxxxx">
+        <div class="f-hint">Gratis su resend.com → API Keys (3.000 mail/mese gratis)</div>
+      </div>
+      <div class="f-row">
+        <label class="f-label">Email mittente (verificata su Resend)</label>
+        <input class="f-input" id="cfg-from" placeholder="nicola.ruga@fiditech.it">
+      </div>
+      <div class="f-row">
+        <label class="f-label">Supabase URL</label>
+        <input class="f-input" id="cfg-supa-url" placeholder="https://xxx.supabase.co">
+      </div>
+      <div class="f-row">
+        <label class="f-label">Supabase Anon Key</label>
+        <input class="f-input" id="cfg-supa-key" type="password" placeholder="eyJ...">
+      </div>
+    </div>
+    <div style="margin-top:10px;display:flex;gap:10px;align-items:center;">
+      <button class="btn btn-primary btn-sm" onclick="saveConfig()">Salva</button>
+      <span id="cfg-st" style="font-size:11px;color:var(--green2);"></span>
+    </div>
+  </div>
+
+  <div class="info-note">
+    <strong>Come funziona l'invio:</strong> questa pagina usa <a href="https://resend.com" target="_blank">Resend.com</a> per inviare le email automatiche — gratuito fino a 3.000 mail/mese.
+    Registrati, aggiungi il dominio <code>fiditech.it</code> (stesso DNS Aruba), copia la API key qui sopra.
+    In alternativa puoi usare lo stesso SMTP Aruba già attivo su Agorà CRM.
+  </div>
+
+  <!-- AGGIUNGI AGENTE -->
+  <div class="section">
+    <div class="s-title">Aggiungi nuovo agente / AM</div>
+    <div class="s-sub">Inserisci i dati — il sistema crea l'account su Supabase e invia la mail di onboarding automaticamente.</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Nome completo</label><input class="f-input" id="n-nome" placeholder="Es. Marco Bianchi"></div>
+      <div class="f-row"><label class="f-label">Email agente</label><input class="f-input" id="n-email" type="email" placeholder="m.bianchi@fiditech.it"></div>
+      <div class="f-row"><label class="f-label">Ruolo</label>
+        <select class="f-select" id="n-ruolo">
+          <option value="agente">Agente</option>
+          <option value="area_manager">Area Manager</option>
+          <option value="direttore">Direttore</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="f-label">Zona operativa</label><input class="f-input" id="n-zona" placeholder="Es. Lombardia / Milano"></div>
+      <div class="f-row"><label class="f-label">Settori assegnati</label><input class="f-input" id="n-settori" placeholder="Es. Fotovoltaico, Energia"></div>
+      <div class="f-row"><label class="f-label">Scadenza inserimento dati</label><input class="f-input" id="n-scad" type="date"></div>
+    </div>
+    <div class="f-row" style="margin-bottom:14px;">
+      <label class="f-label">Nota personale (opzionale — appare nella mail)</label>
+      <input class="f-input" id="n-nota" placeholder="Es. Grazie per la disponibilità nella call di ieri">
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="f-label">Anteprima mail</label>
+      <div class="prev-subj" id="prev-subj">—</div>
+      <div class="prev-box" id="prev-body">Compila i campi per vedere l'anteprima...</div>
+    </div>
+    <div class="btn-row">
+      <button class="btn" onclick="updatePreview()">🔄 Aggiorna anteprima</button>
+      <button class="btn btn-primary" id="send-btn" onclick="addAndSend()">✉️ Crea account e invia mail</button>
+    </div>
+    <div class="st-msg" id="send-st"></div>
+  </div>
+
+  <!-- AGENTI REGISTRATI -->
+  <div class="section">
+    <div class="s-title">Agenti registrati</div>
+    <div class="s-sub">Storico e stato mail di onboarding.</div>
+    <div id="agent-list"><div style="font-size:12px;color:var(--text3);text-align:center;padding:20px;font-family:var(--mono);">Caricamento...</div></div>
+  </div>
+
+  <!-- TEMPLATE -->
+  <div class="section">
+    <div class="s-title">Template email — modifica e salva</div>
+    <div class="s-sub">Variabili disponibili: [NOME] [EMAIL] [RUOLO] [ZONA] [SETTORI] [SCADENZA] [NOTA] [TRACKER_URL]</div>
+    <div class="f-row" style="margin-bottom:11px;">
+      <label class="f-label">Oggetto</label>
+      <input class="f-input" id="tpl-subj" value="Benvenuto in Fiditech — primo passo: carica i tuoi contatti">
+    </div>
+    <div class="f-row">
+      <label class="f-label">Corpo</label>
+      <textarea class="f-textarea" id="tpl-body">Ciao [NOME],
+
+Benvenuto ufficialmente nella rete Fiditech.
+
+Il tuo ruolo: [RUOLO] — zona [ZONA]
+Settori assegnati: [SETTORI]
+
+Come primo passo operativo, ti chiedo di accedere al nostro Sales Tracker e inserire tutti i contatti commerciali che hai effettuato dall'inizio della nostra collaborazione ad oggi.
+
+ACCESSO
+——————————————————————————
+🔗 [TRACKER_URL]
+📧 Email: [EMAIL]
+🔑 Password: fiditech2025
+
+COSA INSERIRE
+——————————————————————————
+• Ogni cliente o prospect contattato, anche solo una volta
+• Prodotto trattato (Fotovoltaico, Energia, LED, TLC, ecc.)
+• Stato attuale della trattativa
+• Valore stimato del contratto, anche approssimativo
+• Note su com'è andata e qual è il prossimo passo
+
+PERCHÉ È IMPORTANTE
+——————————————————————————
+Questo mi permette di supportarti attivamente. Se una trattativa è bloccata, possiamo lavorarci insieme. Se non la vedo, non posso aiutarti a chiuderla.
+
+[NOTA]
+Ti chiedo di completare l'inserimento entro il [SCADENZA].
+
+Per dubbi sull'utilizzo della piattaforma, scrivimi su WhatsApp.
+
+In bocca al lupo,
+Nicola Ruga
+Direttore Vendite — Fiditech Srl
+nicola.ruga@fiditech.it</textarea>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-success" onclick="saveTpl()">💾 Salva template</button>
+      <span id="tpl-st" style="font-size:11px;color:var(--green2);"></span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const TRACKER_URL = 'https://tracker.fiditech.it';
+const RUOLI_MAP = {agente:'Agente', area_manager:'Area Manager', direttore:'Direttore Vendite'};
+
+function loadConfig() {
+  ['resend','from','supa-url','supa-key'].forEach(k => {
+    const el = document.getElementById('cfg-'+k);
+    if (el) el.value = localStorage.getItem('fid_'+k) || '';
+  });
+  const t = localStorage.getItem('fid_tpl');
+  if (t) {
+    try {
+      const p = JSON.parse(t);
+      if (p.subj) document.getElementById('tpl-subj').value = p.subj;
+      if (p.body) document.getElementById('tpl-body').value = p.body;
+    } catch(e){}
+  }
+  // Default scadenza = venerdì prossimo
+  const d = new Date();
+  d.setDate(d.getDate() + (5 - d.getDay() + 7) % 7 || 7);
+  document.getElementById('n-scad').value = d.toISOString().split('T')[0];
+}
+
+function saveConfig() {
+  ['resend','from','supa-url','supa-key'].forEach(k => {
+    localStorage.setItem('fid_'+k, document.getElementById('cfg-'+k).value.trim());
+  });
+  document.getElementById('cfg-st').textContent = '✓ Salvata';
+  setTimeout(() => document.getElementById('cfg-st').textContent = '', 2000);
+  loadAgents();
+}
+
+function saveTpl() {
+  localStorage.setItem('fid_tpl', JSON.stringify({subj: document.getElementById('tpl-subj').value, body: document.getElementById('tpl-body').value}));
+  document.getElementById('tpl-st').textContent = '✓ Salvato';
+  setTimeout(() => document.getElementById('tpl-st').textContent = '', 2000);
+}
+
+function fillTpl(nome, email, ruolo, zona, settori, scad, nota) {
+  const scadFmt = scad ? new Date(scad).toLocaleDateString('it-IT',{day:'numeric',month:'long',year:'numeric'}) : 'da concordare';
+  const vars = {'[NOME]':nome||'Nome','[EMAIL]':email||'email@fiditech.it','[RUOLO]':RUOLI_MAP[ruolo]||ruolo,'[ZONA]':zona||'—','[SETTORI]':settori||'—','[SCADENZA]':scadFmt,'[NOTA]':nota?nota+'\n':'','[TRACKER_URL]':TRACKER_URL};
+  let body = document.getElementById('tpl-body').value;
+  let subj = document.getElementById('tpl-subj').value;
+  Object.entries(vars).forEach(([k,v])=>{ body=body.replaceAll(k,v); subj=subj.replaceAll(k,v); });
+  return {body, subj};
+}
+
+function updatePreview() {
+  const {body, subj} = fillTpl(
+    document.getElementById('n-nome').value,
+    document.getElementById('n-email').value,
+    document.getElementById('n-ruolo').value,
+    document.getElementById('n-zona').value,
+    document.getElementById('n-settori').value,
+    document.getElementById('n-scad').value,
+    document.getElementById('n-nota').value
+  );
+  document.getElementById('prev-subj').textContent = 'Oggetto: ' + subj;
+  document.getElementById('prev-body').textContent = body;
+}
+
+['n-nome','n-email','n-ruolo','n-zona','n-settori','n-scad','n-nota'].forEach(id =>
+  document.getElementById(id).addEventListener('input', updatePreview)
+);
+
+// SUPABASE
+async function sbFetch(path, opts={}) {
+  const url = localStorage.getItem('fid_supa-url');
+  const key = localStorage.getItem('fid_supa-key');
+  if (!url || !key) throw new Error('Configura Supabase URL e Key prima');
+  const res = await fetch(url+'/rest/v1/'+path, {
+    ...opts,
+    headers:{'apikey':key,'Authorization':'Bearer '+key,'Content-Type':'application/json','Prefer':opts.prefer||'return=representation',...(opts.headers||{})}
+  });
+  const txt = await res.text();
+  if (!res.ok) throw new Error(txt);
+  return txt ? JSON.parse(txt) : null;
+}
+
+async function loadAgents() {
+  try {
+    const agents = await sbFetch('agenti_tracker?select=*&order=created_at.desc');
+    renderAgents(agents||[]);
+  } catch(e) {
+    document.getElementById('agent-list').innerHTML = '<div style="font-size:12px;color:var(--text3);text-align:center;padding:16px;font-family:var(--mono);">Configura Supabase per vedere gli agenti.</div>';
+  }
+}
+
+function renderAgents(agents) {
+  const el = document.getElementById('agent-list');
+  if (!agents.length) { el.innerHTML = '<div style="font-size:13px;color:var(--text3);text-align:center;padding:20px;">Nessun agente ancora.</div>'; return; }
+  el.innerHTML = agents.map(a => {
+    const init = a.avatar || a.nome.substring(0,2).toUpperCase();
+    const sent = localStorage.getItem('fid_sent_'+a.id);
+    const badgeClass = !a.attivo ? 'b-off' : sent ? 'b-sent' : 'b-pend';
+    const badgeLabel = !a.attivo ? 'Disattivo' : sent ? ('Mail inviata '+sent) : 'In attesa mail';
+    return `<div class="a-row">
+      <div class="a-av">${init}</div>
+      <div class="a-info">
+        <div class="a-name">${a.nome}</div>
+        <div class="a-meta">${a.email} · ${RUOLI_MAP[a.ruolo]||a.ruolo} · ${a.zona||'—'}</div>
+      </div>
+      <span class="a-badge ${badgeClass}">${badgeLabel}</span>
+      <div style="display:flex;gap:6px;">
+        ${a.attivo && !sent ? `<button class="btn btn-sm btn-primary" onclick="resendTo('${a.id}','${a.nome}','${a.email}','${a.ruolo}','${(a.zona||'').replace(/'/g,"\\'")}')">Invia mail</button>` : ''}
+        <button class="btn btn-sm" onclick="toggleA('${a.id}',${a.attivo})">${a.attivo?'Disattiva':'Attiva'}</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+async function toggleA(id, attivo) {
+  await sbFetch(`agenti_tracker?id=eq.${id}`, {method:'PATCH', body:JSON.stringify({attivo:!attivo})});
+  loadAgents();
+}
+
+// EMAIL VIA RESEND
+async function sendMail(to, nome, subj, bodyText) {
+  const apiKey = localStorage.getItem('fid_resend');
+  const from = localStorage.getItem('fid_from') || 'nicola.ruga@fiditech.it';
+  if (!apiKey) throw new Error('API key Resend non configurata');
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"></head><body style="font-family:Helvetica Neue,Arial,sans-serif;font-size:15px;line-height:1.75;color:#111;max-width:580px;margin:0 auto;padding:36px 24px;">
+    <div style="border-bottom:2px solid #c8982a;padding-bottom:14px;margin-bottom:28px;"><span style="font-size:11px;letter-spacing:.14em;color:#c8982a;text-transform:uppercase;font-weight:700;">FIDITECH SRL — Sales Network</span></div>
+    <div style="white-space:pre-wrap;">${bodyText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>').replace(/——+/g,'<hr style="border:none;border-top:1px solid #eee;margin:10px 0;">')}</div>
+    <div style="margin-top:36px;padding-top:14px;border-top:1px solid #eee;font-size:11px;color:#aaa;">Questo messaggio è riservato al destinatario. Fiditech Srl — Torino.</div>
+  </body></html>`;
+  const res = await fetch('https://api.resend.com/emails', {
+    method:'POST',
+    headers:{'Authorization':'Bearer '+apiKey,'Content-Type':'application/json'},
+    body:JSON.stringify({from:`Nicola Ruga — Fiditech <${from}>`, to:[to], subject:subj, html, text:bodyText})
+  });
+  if (!res.ok) { const e = await res.json(); throw new Error(e.message||'Errore Resend'); }
+  return res.json();
+}
+
+async function addAndSend() {
+  const nome = document.getElementById('n-nome').value.trim();
+  const email = document.getElementById('n-email').value.trim().toLowerCase();
+  const ruolo = document.getElementById('n-ruolo').value;
+  const zona = document.getElementById('n-zona').value.trim();
+  const settori = document.getElementById('n-settori').value.trim();
+  const scad = document.getElementById('n-scad').value;
+  const nota = document.getElementById('n-nota').value.trim();
+  if (!nome || !email) return showSt('Inserisci almeno nome e email.','err');
+  document.getElementById('send-btn').disabled = true;
+  showSt('Creazione account su Supabase...','load');
+  try {
+    const init = nome.split(' ').map(p=>p[0]).join('').substring(0,2).toUpperCase();
+    const created = await sbFetch('agenti_tracker', {method:'POST', body:JSON.stringify({nome, email, ruolo, zona, avatar:init, attivo:true})});
+    const agId = Array.isArray(created)?created[0]?.id:created?.id;
+    showSt('Invio email a '+email+'...','load');
+    const {body, subj} = fillTpl(nome, email, ruolo, zona, settori, scad, nota);
+    await sendMail(email, nome, subj, body);
+    if (agId) localStorage.setItem('fid_sent_'+agId, new Date().toLocaleDateString('it-IT'));
+    showSt('✓ Account creato e mail inviata a '+nome+' ('+email+')','ok');
+    ['n-nome','n-email','n-zona','n-settori','n-nota'].forEach(id=>document.getElementById(id).value='');
+    loadAgents();
+  } catch(e) { showSt('Errore: '+e.message,'err'); }
+  document.getElementById('send-btn').disabled = false;
+}
+
+async function resendTo(id, nome, email, ruolo, zona) {
+  try {
+    const {body, subj} = fillTpl(nome, email, ruolo, zona,'','','');
+    await sendMail(email, nome, subj, body);
+    localStorage.setItem('fid_sent_'+id, new Date().toLocaleDateString('it-IT'));
+    loadAgents();
+  } catch(e) { alert('Errore: '+e.message); }
+}
+
+function showSt(msg, type) {
+  const el = document.getElementById('send-st');
+  el.className = 'st-msg ' + (type==='ok'?'st-ok':type==='err'?'st-err':'st-load');
+  el.textContent = msg;
+  el.style.display = 'block';
+  if (type==='ok') setTimeout(()=>el.style.display='none', 4000);
+}
+
+loadConfig();
+loadAgents();
+updatePreview();
+</script>
+</body>
+</html>

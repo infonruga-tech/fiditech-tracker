@@ -241,6 +241,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <button class="topbar-tab" onclick="switchView('team')" id="tab-team">Team</button>
       <button class="topbar-tab" onclick="switchView('log')">Log</button>
       <button class="topbar-tab" onclick="switchView('insight')" id="tab-insight">Insight</button>
+      <button class="topbar-tab" onclick="switchView('archivio')" id="tab-archivio">📦 Archivio</button>
     </div>
     <div class="topbar-right">
       <div class="user-chip">
@@ -305,6 +306,23 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
 
     <!-- INSIGHT -->
+    <div class="view" id="v-archivio">
+      <div style="max-width:900px;margin:0 auto;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;">
+          <input class="f-input" id="arch-search" placeholder="🔍 Cerca cliente, agente, codice offerta..." style="flex:1;min-width:200px;" oninput="renderArchivio()">
+          <select class="f-select" id="arch-esito" onchange="renderArchivio()" style="width:200px;">
+            <option value="">Tutti gli esiti</option>
+            <option value="5">🏆 Chiusa vinta</option>
+            <option value="-2">✕ Non interessato</option>
+          </select>
+          <select class="f-select" id="arch-prodotto" onchange="renderArchivio()" style="width:180px;">
+            <option value="">Tutti i servizi</option>
+          </select>
+        </div>
+        <div id="archivio-list"></div>
+      </div>
+    </div>
+
     <div class="view" id="v-insight">
       <div class="page-header"><div class="page-title">Insight</div></div>
       <div id="insight-body"></div>
@@ -363,9 +381,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <select class="f-select" id="f-stage">
           <option value="0">Contatto iniziale</option>
           <option value="1">Sopralluogo / analisi</option>
-          <option value="2">Offerta inviata</option>
-          <option value="3">Trattativa</option>
-          <option value="4">Chiusa vinta</option>
+          <option value="2">Prepara offerta</option>
+          <option value="3">Offerta inviata</option>
+          <option value="4">Trattativa</option>
+          <option value="5">Chiusa vinta</option>
         </select>
       </div>
     </div>
@@ -446,6 +465,321 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
+<!-- MODAL SCHEDA TECNICA SOLARE PRO -->
+<div class="overlay" id="scheda-fv-modal">
+  <div class="modal" style="max-width:680px;max-height:92vh;overflow-y:auto;">
+    <div class="modal-title" style="color:var(--amber2);">☀ Scheda Tecnica — Migliora Solare Pro</div>
+    <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">Tutti i campi contrassegnati con <span style="color:var(--red2)">*</span> sono obbligatori per procedere.</p>
+
+    <!-- ANAGRAFICA SEDE LEGALE -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:4px;">Anagrafica sede legale</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Via / Piazza <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-via-sede" placeholder="Es. Via Industriale"></div>
+      <div class="f-row"><label class="f-label">N. Civico <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-nciv-sede" placeholder="Es. 42"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">CAP <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-cap-sede" placeholder="20100" maxlength="5"></div>
+      <div class="f-row"><label class="f-label">Città <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-citta-sede" placeholder="Es. Milano"></div>
+      <div class="f-row"><label class="f-label">Provincia <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-prov-sede" placeholder="MI" maxlength="2"></div>
+    </div>
+
+    <!-- REFERENTE -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Referente cliente</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Nome e Cognome referente <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-referente" placeholder="Es. Mario Rossi"></div>
+      <div class="f-row"><label class="f-label">Telefono / Cellulare <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-tel" placeholder="Es. 348 1234567" type="tel"></div>
+    </div>
+    <div class="f-row"><label class="f-label">Email referente <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-email" placeholder="referente@azienda.it" type="email"></div>
+
+    <!-- INDIRIZZO INSTALLAZIONE -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Indirizzo installazione (se diverso dalla sede)</div>
+    <div class="f-row"><label class="f-label">Via / Piazza e Numero civico</label><input class="f-input" id="sc-via-inst" placeholder="Es. Via Industriale 42"></div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">CAP</label><input class="f-input" id="sc-cap-inst" placeholder="20100" maxlength="5"></div>
+      <div class="f-row"><label class="f-label">Città</label><input class="f-input" id="sc-citta-inst" placeholder="Es. Milano"></div>
+      <div class="f-row"><label class="f-label">Provincia</label><input class="f-input" id="sc-prov-inst" placeholder="MI" maxlength="2"></div>
+    </div>
+    <div class="f-row"><label class="f-label">Localizzatore Google Maps</label><input class="f-input" id="sc-gmaps" placeholder="Incolla il link Google Maps del sito di installazione"></div>
+
+    <!-- IMPIANTO ESISTENTE -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Impianto fotovoltaico esistente</div>
+    <div class="f-row">
+      <label class="f-label">Il cliente ha già un impianto fotovoltaico? <span style="color:var(--red2)">*</span></label>
+      <div style="display:flex;gap:16px;margin-top:6px;">
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="sc-fv-exist" value="no" checked style="accent-color:var(--amber)"> No</label>
+        <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="radio" name="sc-fv-exist" value="si" style="accent-color:var(--amber)"> Sì</label>
+      </div>
+    </div>
+
+    <!-- IMPIANTO PROPOSTO -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Impianto proposto</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Potenza impianto kWp <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-kwp" placeholder="Es. 30" type="number" min="10"></div>
+      <div class="f-row"><label class="f-label">Accumulo kWh</label><input class="f-input" id="sc-kwh" placeholder="Es. 15" type="number" min="0"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Wallbox (n. colonnine)</label><input class="f-input" id="sc-wallbox-n" placeholder="0" type="number" min="0"></div>
+      <div class="f-row"><label class="f-label">Potenza Wallbox kW</label><input class="f-input" id="sc-wallbox-kw" placeholder="Es. 7.4" type="number" min="0"></div>
+    </div>
+    <div class="f-row"><label class="f-label">Altro (accessori, richieste speciali)</label><input class="f-input" id="sc-altro-imp" placeholder="Es. ottimizzatori, monitoraggio avanzato..."></div>
+
+    <!-- SCHEDA TECNICA EDIFICIO -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Caratteristiche edificio</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Tipologia edificio <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-tipo-edificio">
+          <option value="">— seleziona —</option>
+          <option>Capannone industriale</option>
+          <option>Terreno (impianto a terra)</option>
+          <option>Edificio commerciale</option>
+          <option>Edificio agricolo</option>
+          <option>Altro</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="f-label">Area destinata <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-area">
+          <option value="">— seleziona —</option>
+          <option>A tetto</option>
+          <option>A terra</option>
+          <option>Pensilina / parcheggio</option>
+          <option>Misto tetto e terra</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Soluzione proposta <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-soluzione">
+          <option value="">— seleziona —</option>
+          <option>Acquisto</option>
+          <option>Noleggio operativo</option>
+          <option>Altro</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="f-label">Immobile di proprietà <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-proprieta">
+          <option value="">— seleziona —</option>
+          <option>Sì — di proprietà</option>
+          <option>Leasing</option>
+          <option>Affitto</option>
+          <option>Altro</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Superficie interna mq</label><input class="f-input" id="sc-sup-int" placeholder="Es. 1200" type="number"></div>
+      <div class="f-row"><label class="f-label">Superficie esterna mq</label><input class="f-input" id="sc-sup-ext" placeholder="Es. 500" type="number"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Altezza edificio (mt) <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-altezza" placeholder="Es. 8" type="number"></div>
+      <div class="f-row"><label class="f-label">CPI (Certificato Prev. Incendi) <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-cpi">
+          <option value="">— seleziona —</option>
+          <option>Sì</option>
+          <option>No</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- CARATTERISTICHE TETTO -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Caratteristiche tetto / copertura</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Accesso al tetto <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-accesso-tetto">
+          <option value="">— seleziona —</option>
+          <option>Sì</option>
+          <option>No — da verificare</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="f-label">Tipologia tetto <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-tipo-tetto">
+          <option value="">— seleziona —</option>
+          <option>Falde (a spiovente)</option>
+          <option>Piano</option>
+          <option>Cupolini</option>
+          <option>Shed / shed industriale</option>
+          <option>Altro</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Tipo copertura esistente <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-copertura">
+          <option value="">— seleziona —</option>
+          <option>Amianto / Eternit — DA BONIFICARE</option>
+          <option>Fibrocemento senza amianto</option>
+          <option>Pannello sandwich</option>
+          <option>Lamiera</option>
+          <option>Tegole / coppi</option>
+          <option>Policarbonato / traslucido</option>
+          <option>Altro</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="f-label">Tipo soletta <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-soletta">
+          <option value="">— seleziona —</option>
+          <option>Cemento armato</option>
+          <option>Travi in legno</option>
+          <option>Travi in acciaio</option>
+          <option>Travelloni pedonabili</option>
+          <option>Altro</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Lucernari / traslucidi <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-lucernari">
+          <option value="">— seleziona —</option>
+          <option>No</option>
+          <option>Sì — specificare in note</option>
+        </select>
+      </div>
+      <div class="f-row"><label class="f-label">Linea vita presente <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-lineavita">
+          <option value="">— seleziona —</option>
+          <option>Sì</option>
+          <option>No</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Canne fumarie / ostacoli sul tetto</label><input class="f-input" id="sc-canne" placeholder="Es. 2 canne fumarie lato nord, 1 canna fumaria centrale"></div>
+
+    <!-- DATI ELETTRICI -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Dati elettrici e consumi</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Numero contatori <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-n-contatori" placeholder="Es. 3" type="number" min="1"></div>
+      <div class="f-row"><label class="f-label">Posizione contatori</label><input class="f-input" id="sc-pos-contatori" placeholder="Es. ingresso principale, magazzino"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Potenza utenza kW <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-pot-kw" placeholder="Es. 100" type="number"></div>
+      <div class="f-row"><label class="f-label">Tipo fornitura <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-bt-mt">
+          <option value="">— seleziona —</option>
+          <option>BT (Bassa Tensione)</option>
+          <option>MT (Media Tensione)</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Consumo annuo F1 kWh <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-f1" placeholder="Es. 80000" type="number"></div>
+      <div class="f-row"><label class="f-label">Consumo annuo F2 kWh</label><input class="f-input" id="sc-f2" placeholder="Es. 20000" type="number"></div>
+      <div class="f-row"><label class="f-label">Consumo annuo F3 kWh</label><input class="f-input" id="sc-f3" placeholder="Es. 10000" type="number"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Costo attuale energia €/kWh <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-costo-kwh" placeholder="Es. 0.24" type="number" step="0.01"></div>
+      <div class="f-row"><label class="f-label">Wi-Fi nel locale contatore <span style="color:var(--red2)">*</span></label>
+        <select class="f-select" id="sc-wifi">
+          <option value="">— seleziona —</option>
+          <option>Sì</option>
+          <option>No</option>
+          <option>Da verificare</option>
+        </select>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Pratica paesaggistica necessaria <span style="color:var(--red2)">*</span></label>
+      <select class="f-select" id="sc-paesaggistica">
+        <option value="">— seleziona —</option>
+        <option>No</option>
+        <option>Sì — zona vincolata</option>
+        <option>Da verificare</option>
+      </select>
+    </div>
+    <div class="f-row"><label class="f-label">Note aggiuntive</label><textarea class="f-textarea" id="sc-note" rows="3" placeholder="Qualsiasi informazione utile non coperta dai campi precedenti..."></textarea></div>
+
+    <!-- BONUS E PAGAMENTO -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Bonus e modalità di pagamento</div>
+    <div class="f-row"><label class="f-label">Il cliente vuole verificare accesso a bonus / incentivi?</label>
+      <select class="f-select" id="sc-bonus-interest" onchange="onBonusInterestChange()">
+        <option value="">— seleziona —</option>
+        <option value="no">No — non interessato</option>
+        <option value="si_sa">Sì — sa già quale (specificare sotto)</option>
+        <option value="si_ingegneri">Sì — valutazione in carico agli ingegneri</option>
+        <option value="da_valutare">Da valutare insieme</option>
+      </select>
+    </div>
+    <div id="sc-bonus-detail" style="display:none;margin-top:8px;">
+      <div class="f-row"><label class="f-label">Bonus di interesse</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:5px;" id="sc-bonus-checks">
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="checkbox" value="Conto Termico" style="accent-color:var(--amber)"> Conto Termico</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="checkbox" value="TEE" style="accent-color:var(--amber)"> TEE</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="checkbox" value="PNRR" style="accent-color:var(--amber)"> PNRR</label>
+          <label style="display:flex;align-items:center;gap:5px;font-size:13px;cursor:pointer;color:var(--text2)"><input type="checkbox" value="CER" style="accent-color:var(--amber)"> CER (Comunità Energetica)</label>
+        </div>
+      </div>
+    </div>
+    <div id="sc-ingegneri-note" style="display:none;margin-top:8px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);padding:10px;font-size:12px;color:var(--amber2);">
+      ⚙ La valutazione bonus verrà inoltrata agli ingegneri insieme alla scheda tecnica.<br>
+      <small>Collegamento con ruganicola.it/bonus — predisposto, non ancora attivo.</small>
+    </div>
+    <div class="f-row" style="margin-top:10px;"><label class="f-label">Modalità di pagamento preferita</label>
+      <select class="f-select" id="sc-pagamento">
+        <option value="">— seleziona —</option>
+        <option>Bonifico bancario</option>
+        <option>Finanziamento</option>
+        <option>Leasing</option>
+        <option>Noleggio operativo</option>
+        <option>Da definire</option>
+      </select>
+    </div>
+
+    <!-- UPLOAD DOCUMENTI OBBLIGATORI -->
+    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Documenti allegati <span style="color:var(--red2)">*</span></div>
+    <div style="background:var(--bg3);border:1px solid var(--amber-border);border-radius:var(--r);padding:12px;margin-bottom:10px;font-size:12px;color:var(--amber2);">
+      ⚠ Obbligatori: bolletta elettrica + foto edificio (tutti i lati) + locale contatore.<br>Facoltativi: cabina elettrica, planimetria, altri documenti.
+    </div>
+
+    <div style="margin-bottom:8px;">
+      <label class="f-label">Bolletta elettrica <span style="color:var(--red2)">*</span></label>
+      <div id="sc-drop-bolletta" class="sc-dropzone" onclick="document.getElementById('sc-file-bolletta').click()">
+        📄 Clicca o trascina qui la bolletta elettrica
+      </div>
+      <input type="file" id="sc-file-bolletta" accept=".pdf,.jpg,.jpeg,.png" style="display:none" onchange="handleSchedaFile('bolletta',this)">
+      <div id="sc-bolletta-name" style="font-size:12px;color:var(--green2);margin-top:4px;"></div>
+    </div>
+
+    <div style="margin-bottom:8px;">
+      <label class="f-label">Foto edificio (tutti i lati) <span style="color:var(--red2)">*</span></label>
+      <div id="sc-drop-foto" class="sc-dropzone" onclick="document.getElementById('sc-file-foto').click()">
+        📷 Clicca o trascina qui le foto dell'edificio (puoi selezionare più file)
+      </div>
+      <input type="file" id="sc-file-foto" accept=".jpg,.jpeg,.png,.heic" multiple style="display:none" onchange="handleSchedaFile('foto',this)">
+      <div id="sc-foto-names" style="font-size:12px;color:var(--green2);margin-top:4px;"></div>
+    </div>
+
+    <div style="margin-bottom:8px;">
+      <label class="f-label">Foto locale contatore <span style="color:var(--red2)">*</span></label>
+      <div id="sc-drop-contatore" class="sc-dropzone" onclick="document.getElementById('sc-file-contatore').click()">
+        📷 Clicca o trascina qui la foto del contatore
+      </div>
+      <input type="file" id="sc-file-contatore" accept=".jpg,.jpeg,.png,.heic" multiple style="display:none" onchange="handleSchedaFile('contatore',this)">
+      <div id="sc-contatore-names" style="font-size:12px;color:var(--green2);margin-top:4px;"></div>
+    </div>
+
+    <div style="margin-bottom:8px;">
+      <label class="f-label">Foto cabina elettrica (se presente)</label>
+      <div class="sc-dropzone" onclick="document.getElementById('sc-file-cabina').click()">
+        📷 Foto cabina elettrica
+      </div>
+      <input type="file" id="sc-file-cabina" accept=".jpg,.jpeg,.png,.heic" multiple style="display:none" onchange="handleSchedaFile('cabina',this)">
+      <div id="sc-cabina-names" style="font-size:12px;color:var(--green2);margin-top:4px;"></div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label class="f-label">Altri documenti (facoltativo)</label>
+      <div class="sc-dropzone" onclick="document.getElementById('sc-file-altri').click()">
+        📎 Planimetrie, altri documenti
+      </div>
+      <input type="file" id="sc-file-altri" multiple style="display:none" onchange="handleSchedaFile('altri',this)">
+      <div id="sc-altri-names" style="font-size:12px;color:var(--green2);margin-top:4px;"></div>
+    </div>
+
+    <div id="sc-error" style="display:none;background:var(--red-bg);border:1px solid var(--red2);border-radius:var(--r);padding:10px;font-size:13px;color:var(--red2);margin-bottom:12px;"></div>
+
+    <div class="modal-footer">
+      <button class="btn" onclick="chiudiSchedaFV()">Annulla</button>
+      <button class="btn btn-primary" onclick="salvaSchedaFV()">Salva scheda e continua</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL RIMBALZO -->
 <div class="overlay" id="bounce-modal">
   <div class="modal" style="max-width:460px;">
@@ -475,13 +809,97 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // CONFIG — sostituisci con i tuoi dati Supabase
 // ============================================================
 const SUPA_URL = 'https://emgfuujluqliuogkyfys.supabase.co';
+
+function generaCodiceOfferta(prodotto) {
+  const prefissi = { fv: 'MS', fv_pro: 'SP', illumina: 'IL', bonus: 'BN',
+    efficienza: 'EF', relax: 'RL', sibook: 'AP', energia: 'EN', tlc: 'TL', fid: 'MT' };
+  const pref = prefissi[prodotto] || 'XX';
+  const anno = new Date().getFullYear();
+  const num = String(Math.floor(Math.random() * 9000) + 1000);
+  return `FID-${pref}-${anno}-${num}`;
+}
+
+async function inviaEmailSchedaFV(deal, scheda, codiceOfferta) {
+  const linkTracker = `https://tracker.ruganicola.it`;
+  const campiScheda = Object.entries(scheda)
+    .filter(([,v]) => v)
+    .map(([k,v]) => `<tr><td style="padding:4px 8px;color:#666;font-size:12px">${k.replace(/_/g,' ')}</td><td style="padding:4px 8px;font-size:12px"><strong>${v}</strong></td></tr>`)
+    .join('');
+
+  const subject = `Offerta Solare Pro — ${deal.client_name} — P.IVA ${deal.piva||'N/D'} — Rif. ${codiceOfferta}`;
+  const body = `
+    <div style="font-family:Arial,sans-serif;max-width:600px">
+      <div style="background:#1A1614;padding:16px 20px;margin-bottom:20px">
+        <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff">migli</span>
+        <span style="display:inline-block;width:16px;height:16px;background:#C0392B;border-radius:50%;vertical-align:middle;margin:0 1px"></span>
+        <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#C0392B">ra</span>
+        <span style="font-size:12px;color:#9C9490;margin-left:10px">Tracker Offerte</span>
+      </div>
+      <h2 style="color:#1A1614;margin-bottom:4px">Nuova richiesta offerta Solare Pro</h2>
+      <p style="color:#5C534D;margin-bottom:20px">
+        <strong>Cliente:</strong> ${deal.client_name}<br>
+        <strong>P.IVA:</strong> ${deal.piva||'N/D'}<br>
+        <strong>Agente:</strong> ${ME.nome}<br>
+        <strong>Codice riferimento:</strong> <strong style="color:#C0392B">${codiceOfferta}</strong>
+      </p>
+      <table style="width:100%;border-collapse:collapse;background:#F5F3F0;border-radius:8px;overflow:hidden">
+        <tr style="background:#C0392B"><th colspan="2" style="padding:8px 12px;color:#fff;text-align:left;font-size:13px">Dati scheda tecnica</th></tr>
+        ${campiScheda}
+      </table>
+      <div style="margin-top:20px;padding:14px;background:#EAF3DE;border-radius:8px;border-left:4px solid #2D7A4A">
+        <p style="margin:0;font-size:13px;color:#2D7A4A">
+          <strong>Visualizza la trattativa completa con tutti i documenti allegati:</strong><br>
+          <a href="${linkTracker}" style="color:#2D7A4A">${linkTracker}</a><br>
+          <small>Cerca: ${deal.client_name} — Rif. ${codiceOfferta}</small>
+        </p>
+      </div>
+      <hr style="margin:20px 0;border:none;border-top:1px solid #E2DDD8">
+      <p style="font-size:11px;color:#9C9490">Fiditech Sales Tracker — notifica automatica</p>
+    </div>`;
+
+  await sendEmail('nicola@ruganicola.it', 'Nicola Ruga', subject, body);
+}
+
+async function inviaEmailOffertaPronta(deal) {
+  const agente = ALL_AGENTS.find(a => a.id === deal.agente_id);
+  if (!agente) return;
+  const emailAgente = getAgentEmail(agente);
+  if (!emailAgente) return;
+  const subject = `Offerta pronta — ${deal.client_name} — P.IVA ${deal.piva||'N/D'} — Rif. ${deal.codice_offerta||'N/D'}`;
+  const body = `
+    <div style="font-family:Arial,sans-serif;max-width:600px">
+      <h2 style="color:#2D7A4A">📄 La tua offerta è pronta</h2>
+      <p>Ciao <strong>${agente.nome}</strong>,</p>
+      <p>L'offerta per il cliente <strong>${deal.client_name}</strong> è stata elaborata ed è disponibile nel tracker.</p>
+      <p><strong>Codice riferimento:</strong> <strong style="color:#C0392B">${deal.codice_offerta||'N/D'}</strong></p>
+      <p>Accedi al tracker per scaricarla e inviarla al cliente:<br>
+      <a href="https://tracker.ruganicola.it">https://tracker.ruganicola.it</a></p>
+      <hr style="margin:20px 0;border:none;border-top:1px solid #E2DDD8">
+      <p style="font-size:11px;color:#9C9490">Fiditech Sales Tracker — notifica automatica</p>
+    </div>`;
+  await sendEmail(emailAgente, agente.nome, subject, body);
+}
+
+async function supaFetch(path, method, body) {
+  const res = await fetch(SUPA_URL + path, {
+    method: method || 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  return res.ok ? res.json() : null;
+}
 const SUPA_KEY = 'sb_publishable_9lgVhSf2f1r3OHDacXKRPw_vDYg4noX'; // usa la anon key pubblica
 // NOTA: per sicurezza totale, usa una Edge Function Supabase
 // come proxy. Per iniziare, la anon key va bene con le RLS policy.
 // ============================================================
 
-const STAGES = ['Contatto iniziale','Sopralluogo','Offerta inviata','Trattativa','Chiusa vinta'];
-const STAGE_CLR = ['#3a6faa','#a06030','#7050a0','#c07840','#3d9460'];
+const STAGES = ['Contatto iniziale','Sopralluogo','Prepara offerta','Offerta inviata','Trattativa','Chiusa vinta'];
+const STAGE_CLR = ['#3a6faa','#a06030','#c87820','#7050a0','#c07840','#3d9460'];
 const PROD = {
   fv:'Migliora Solare', fv_pro:'Migliora Solare Pro',
   illumina:'Migliora Illumina', led:'Expoled',
@@ -600,6 +1018,22 @@ function doLogout() {
 // ============================================================
 // APP INIT
 // ============================================================
+function checkOffertePronte(dealsArr) {
+  const pronte = dealsArr.filter(d => d.offerta_pronta && !d.archiviata);
+  if (!pronte.length) return;
+  const existing = document.getElementById('offerte-pronte-banner');
+  if (existing) existing.remove();
+  const banner = document.createElement('div');
+  banner.id = 'offerte-pronte-banner';
+  banner.style.cssText = 'position:fixed;top:56px;left:0;right:0;background:#2D7A4A;color:#fff;padding:10px 20px;display:flex;align-items:center;gap:12px;z-index:90;font-size:13px;font-family:var(--font)';
+  banner.innerHTML = `<span>📄 ${pronte.length} offert${pronte.length>1?'e':'a'} pronta${pronte.length>1?'':''} da inviare al cliente</span>
+    <span style="margin-left:auto;display:flex;gap:8px">
+      ${pronte.map(d=>`<button onclick="openDetail('${d.id}')" style="background:rgba(255,255,255,.2);border:none;color:#fff;padding:4px 12px;border-radius:4px;font-size:12px;cursor:pointer">${d.client_name}</button>`).join('')}
+      <button onclick="this.parentElement.parentElement.remove()" style="background:transparent;border:none;color:rgba(255,255,255,.7);font-size:18px;cursor:pointer;line-height:1">✕</button>
+    </span>`;
+  document.body.insertBefore(banner, document.body.firstChild);
+}
+
 async function startApp() {
   document.getElementById('login-screen').style.display = 'none';
   document.getElementById('app').classList.add('visible');
@@ -612,6 +1046,7 @@ async function startApp() {
   const isDirettore = ME.ruolo === 'direttore';
   document.getElementById('tab-team').style.display = isDirettore ? '' : 'none';
   document.getElementById('tab-insight').style.display = isDirettore ? '' : 'none';
+  document.getElementById('tab-archivio').style.display = ''; // tutti vedono archivio
 
   // Popola select agenti nei form
   populateAgentSelects();
@@ -662,6 +1097,18 @@ function switchView(v) {
   event.currentTarget.classList.add('active');
   if (v === 'team') renderTeam();
   if (v === 'insight') renderInsights();
+  if (v === 'archivio') {
+    renderArchivio();
+    // Popola select prodotti archivio
+    const sel = document.getElementById('arch-prodotto');
+    if (sel && sel.options.length === 1) {
+      Object.entries(PROD).forEach(([k,v]) => {
+        const opt = document.createElement('option');
+        opt.value = k; opt.textContent = v;
+        sel.appendChild(opt);
+      });
+    }
+  }
 }
 
 // ============================================================
@@ -669,7 +1116,7 @@ function switchView(v) {
 // ============================================================
 function renderPipeline() {
   const cols = document.getElementById('pipe-cols');
-  const activeDeals = deals.filter(d => d.stage >= 0);
+  const activeDeals = deals.filter(d => d.stage >= 0 && d.stage < 5 && !d.archiviata);
   cols.innerHTML = STAGES.map((s, i) => {
     const sd = activeDeals.filter(d => d.stage === i);
     const tot = sd.reduce((a, d) => a + (d.valore_stimato||0), 0);
@@ -732,10 +1179,12 @@ function dealCard(d) {
       <span style="font-size:12px;color:var(--amber2);font-weight:500">${ag.nome||'—'}</span>
       <span style="margin-left:auto;font-size:12px;font-weight:600;color:var(--text)">€${(d.valore_stimato||0).toLocaleString('it-IT')}</span>
     </div>
-    <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;">
+    <div style="display:flex;align-items:center;gap:6px;margin-bottom:7px;flex-wrap:wrap;">
       <span class="pill ${PROB_P[d.probabilita]||'p-med'}">${PROB_L[d.probabilita]||''}</span>
       ${d.zona_cliente?`<span style="font-size:11px;color:var(--text3)">📍 ${d.zona_cliente}</span>`:''}
+      ${getStatusIndicator(d)}
     </div>
+    ${d.offerta_pronta?`<div class="offerta-pronta-banner">📄 Offerta pronta — da inviare al cliente</div>`:''}
     ${d.note?`<div style="font-size:12px;color:var(--text2);line-height:1.4;margin-bottom:6px;padding:6px 8px;background:var(--bg4);border-radius:5px;">${d.note.substring(0,100)}${d.note.length>100?'…':''}</div>`:''}
     ${alertHtml}
     <div id="doc-badge-${d.id}"></div>
@@ -743,8 +1192,8 @@ function dealCard(d) {
 }
 
 function renderStats() {
-  const active = deals.filter(d => d.stage >= 0 && d.stage < 4);
-  const won = deals.filter(d => d.stage === 4);
+  const active = deals.filter(d => d.stage >= 0 && d.stage < 5 && !d.archiviata);
+  const won = deals.filter(d => d.stage === 5);
   const total = active.reduce((a, d) => a + (d.valore_stimato||0), 0);
   const all = deals.filter(d => d.stage >= 0);
   const rate = all.length > 0 ? Math.round(won.length / all.length * 100) : null;
@@ -758,8 +1207,138 @@ function renderStats() {
 // ============================================================
 // DETAIL
 // ============================================================
+// ── ARCHIVIO STORICO ─────────────────────────────────────────
+function renderArchivio() {
+  const q = (document.getElementById('arch-search')?.value||'').toLowerCase();
+  const esito = document.getElementById('arch-esito')?.value||'';
+  const prod = document.getElementById('arch-prodotto')?.value||'';
+  const archived = deals.filter(d => d.archiviata || d.stage === 5 || d.stage === -2);
+  const filtered = archived.filter(d => {
+    const mq = !q || (d.client_name+d.piva+d.agente?.nome+d.codice_offerta||'').toLowerCase().includes(q);
+    const me = !esito || String(d.stage) === esito;
+    const mp = !prod || d.prodotto === prod;
+    return mq && me && mp;
+  });
+  const cont = document.getElementById('archivio-list');
+  if (!cont) return;
+  if (!filtered.length) { cont.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text3)">Nessuna trattativa archiviata</div>'; return; }
+  cont.innerHTML = filtered.map(d => {
+    const esitoCls = d.stage === 5 ? 'color:var(--green2)' : 'color:var(--red2)';
+    const esitoLbl = d.stage === 5 ? '🏆 Chiusa vinta' : '✕ Non interessato';
+    const data = d.updated_at ? new Date(d.updated_at).toLocaleDateString('it-IT') : '—';
+    return `<div style="background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);padding:13px 15px;margin-bottom:8px;display:flex;align-items:center;gap:12px;cursor:pointer" onclick="openDetail('${d.id}')">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600;color:var(--text)">${d.client_name}</div>
+        <div style="font-size:11px;color:var(--text3);margin-top:2px">${PROD[d.prodotto]||d.prodotto} · ${d.agente?.nome||'—'} · ${data}</div>
+        ${d.esito_note?`<div style="font-size:12px;color:var(--text2);margin-top:3px;font-style:italic">"${d.esito_note}"</div>`:''}
+        ${d.codice_offerta?`<div style="font-size:11px;color:var(--amber2);margin-top:2px">Rif. ${d.codice_offerta}</div>`:''}
+      </div>
+      <div style="font-size:12px;font-weight:600;${esitoCls}">${esitoLbl}</div>
+      <div style="font-size:13px;font-weight:600;color:var(--text)">€${(d.valore_stimato||0).toLocaleString('it-IT')}</div>
+    </div>`;
+  }).join('');
+}
+
+// Status indicator a colpo d'occhio
+function getStatusIndicator(d) {
+  const now = new Date();
+  const followup = d.next_followup ? new Date(d.next_followup) : null;
+  const updated = d.updated_at ? new Date(d.updated_at) : null;
+  const daysSince = updated ? Math.floor((now - updated) / 86400000) : 999;
+  if (d.offerta_pronta) return '<span class="status-indicator si-ready">📄 Offerta pronta</span>';
+  if (followup && followup < now) return '<span class="status-indicator si-urgent">⚠ Follow-up scaduto</span>';
+  if (daysSince >= 14) return '<span class="status-indicator si-warn">⏸ Ferma ' + daysSince + 'gg</span>';
+  if (d.stage === 2) return '<span class="status-indicator si-ok">📋 Prepara offerta</span>';
+  if (d.stage === 0 && daysSince < 2) return '<span class="status-indicator si-new">🆕 Nuova</span>';
+  return '';
+}
+
 // ── ALLEGATI ────────────────────────────────────────────────────
 const SUPA_URL = 'https://emgfuujluqliuogkyfys.supabase.co';
+
+function generaCodiceOfferta(prodotto) {
+  const prefissi = { fv: 'MS', fv_pro: 'SP', illumina: 'IL', bonus: 'BN',
+    efficienza: 'EF', relax: 'RL', sibook: 'AP', energia: 'EN', tlc: 'TL', fid: 'MT' };
+  const pref = prefissi[prodotto] || 'XX';
+  const anno = new Date().getFullYear();
+  const num = String(Math.floor(Math.random() * 9000) + 1000);
+  return `FID-${pref}-${anno}-${num}`;
+}
+
+async function inviaEmailSchedaFV(deal, scheda, codiceOfferta) {
+  const linkTracker = `https://tracker.ruganicola.it`;
+  const campiScheda = Object.entries(scheda)
+    .filter(([,v]) => v)
+    .map(([k,v]) => `<tr><td style="padding:4px 8px;color:#666;font-size:12px">${k.replace(/_/g,' ')}</td><td style="padding:4px 8px;font-size:12px"><strong>${v}</strong></td></tr>`)
+    .join('');
+
+  const subject = `Offerta Solare Pro — ${deal.client_name} — P.IVA ${deal.piva||'N/D'} — Rif. ${codiceOfferta}`;
+  const body = `
+    <div style="font-family:Arial,sans-serif;max-width:600px">
+      <div style="background:#1A1614;padding:16px 20px;margin-bottom:20px">
+        <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#fff">migli</span>
+        <span style="display:inline-block;width:16px;height:16px;background:#C0392B;border-radius:50%;vertical-align:middle;margin:0 1px"></span>
+        <span style="font-family:Georgia,serif;font-size:22px;font-weight:700;color:#C0392B">ra</span>
+        <span style="font-size:12px;color:#9C9490;margin-left:10px">Tracker Offerte</span>
+      </div>
+      <h2 style="color:#1A1614;margin-bottom:4px">Nuova richiesta offerta Solare Pro</h2>
+      <p style="color:#5C534D;margin-bottom:20px">
+        <strong>Cliente:</strong> ${deal.client_name}<br>
+        <strong>P.IVA:</strong> ${deal.piva||'N/D'}<br>
+        <strong>Agente:</strong> ${ME.nome}<br>
+        <strong>Codice riferimento:</strong> <strong style="color:#C0392B">${codiceOfferta}</strong>
+      </p>
+      <table style="width:100%;border-collapse:collapse;background:#F5F3F0;border-radius:8px;overflow:hidden">
+        <tr style="background:#C0392B"><th colspan="2" style="padding:8px 12px;color:#fff;text-align:left;font-size:13px">Dati scheda tecnica</th></tr>
+        ${campiScheda}
+      </table>
+      <div style="margin-top:20px;padding:14px;background:#EAF3DE;border-radius:8px;border-left:4px solid #2D7A4A">
+        <p style="margin:0;font-size:13px;color:#2D7A4A">
+          <strong>Visualizza la trattativa completa con tutti i documenti allegati:</strong><br>
+          <a href="${linkTracker}" style="color:#2D7A4A">${linkTracker}</a><br>
+          <small>Cerca: ${deal.client_name} — Rif. ${codiceOfferta}</small>
+        </p>
+      </div>
+      <hr style="margin:20px 0;border:none;border-top:1px solid #E2DDD8">
+      <p style="font-size:11px;color:#9C9490">Fiditech Sales Tracker — notifica automatica</p>
+    </div>`;
+
+  await sendEmail('nicola@ruganicola.it', 'Nicola Ruga', subject, body);
+}
+
+async function inviaEmailOffertaPronta(deal) {
+  const agente = ALL_AGENTS.find(a => a.id === deal.agente_id);
+  if (!agente) return;
+  const emailAgente = getAgentEmail(agente);
+  if (!emailAgente) return;
+  const subject = `Offerta pronta — ${deal.client_name} — P.IVA ${deal.piva||'N/D'} — Rif. ${deal.codice_offerta||'N/D'}`;
+  const body = `
+    <div style="font-family:Arial,sans-serif;max-width:600px">
+      <h2 style="color:#2D7A4A">📄 La tua offerta è pronta</h2>
+      <p>Ciao <strong>${agente.nome}</strong>,</p>
+      <p>L'offerta per il cliente <strong>${deal.client_name}</strong> è stata elaborata ed è disponibile nel tracker.</p>
+      <p><strong>Codice riferimento:</strong> <strong style="color:#C0392B">${deal.codice_offerta||'N/D'}</strong></p>
+      <p>Accedi al tracker per scaricarla e inviarla al cliente:<br>
+      <a href="https://tracker.ruganicola.it">https://tracker.ruganicola.it</a></p>
+      <hr style="margin:20px 0;border:none;border-top:1px solid #E2DDD8">
+      <p style="font-size:11px;color:#9C9490">Fiditech Sales Tracker — notifica automatica</p>
+    </div>`;
+  await sendEmail(emailAgente, agente.nome, subject, body);
+}
+
+async function supaFetch(path, method, body) {
+  const res = await fetch(SUPA_URL + path, {
+    method: method || 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Prefer': method === 'POST' ? 'return=representation' : ''
+    },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  return res.ok ? res.json() : null;
+}
 const SUPA_KEY = 'sb_publishable_9lgVhSf2f1r3OHDacXKRPw_vDYg4noX';
 
 async function loadAllegati(trattativaId) {
@@ -821,9 +1400,11 @@ function openDetail(id) {
   document.getElementById('d-btns').innerHTML = canEdit ? `
     <button class="btn btn-sm" onclick="editDeal('${d.id}')">✏️ Modifica</button>
     <button class="btn btn-sm" onclick="advanceStage('${d.id}')">Avanza →</button>
-    <button class="btn btn-sm btn-success" onclick="winDeal('${d.id}')">✓ Vinta</button>
-    <button class="btn btn-sm btn-danger" onclick="loseDeal('${d.id}')">✕ Persa</button>
+    <button class="btn btn-sm btn-success" onclick="winDeal('${d.id}')">🏆 Chiusa vinta</button>
+    <button class="btn btn-sm" style="background:var(--red-bg);border-color:rgba(176,48,48,.3);color:var(--red2)" onclick="notInterestedDeal('${d.id}')">✕ Non interessato</button>
     ${ME.ruolo==='direttore'?`<button class="btn btn-sm" style="background:var(--orange-bg);border-color:rgba(160,96,48,.3);color:var(--orange2)" onclick="openBounceModal('${d.id}')">↩ Rimbalza</button>`:''}
+    ${ME.ruolo==='direttore'?`<button class="btn btn-sm" style="background:var(--red-bg);border-color:var(--red2);color:var(--red2)" onclick="deleteDeal('${d.id}')">🗑 Elimina</button>`:''}
+    ${d.prodotto==='fv_pro'?`<button class="btn btn-sm" style="background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber2)" onclick="apriSchedaFV('${d.id}')">📋 Scheda tecnica</button>`:''}
   ` : '<span style="font-size:12px;color:var(--text3)">Solo visualizzazione</span>';
   const panel = document.getElementById('detail');
   panel.classList.add('open');
@@ -861,7 +1442,7 @@ function closeDetail() { document.getElementById('detail').classList.remove('ope
 
 async function advanceStage(id) {
   const d = deals.find(x => x.id === id);
-  if (!d || d.stage >= 3) return;
+  if (!d || d.stage >= 4) return;
   const newStage = d.stage + 1;
   await updateDeal(id, {stage: newStage});
   await insertLog({agente_id: d.agente_id, trattativa_id: id, tipo: 'Avanzamento fase', nota: `${d.client_name} → ${STAGES[newStage]}`});
@@ -871,10 +1452,36 @@ async function advanceStage(id) {
 async function winDeal(id) {
   const d = deals.find(x => x.id === id);
   if (!d) return;
-  await updateDeal(id, {stage: 4});
+  const note = prompt('Note chiusura (facoltativo):') || '';
+  await updateDeal(id, {stage: 5, archiviata: true, esito_note: note});
   await insertLog({agente_id: d.agente_id, trattativa_id: id, tipo: 'Contratto firmato', nota: `🏆 ${d.client_name} — €${d.valore_stimato||0}`});
   if(ME.ruolo==='direttore') await notifyAgentStatusChange(d, '🏆 Contratto Firmato!');
   await loadData(); closeDetail();
+}
+
+async function notInterestedDeal(id) {
+  const d = deals.find(x => x.id === id);
+  if (!d) return;
+  const note = prompt('Motivo — Non interessato (obbligatorio):');
+  if (!note || !note.trim()) { alert('Inserisci il motivo prima di chiudere la trattativa.'); return; }
+  await updateDeal(id, {stage: -2, archiviata: true, esito_note: note.trim()});
+  await insertLog({agente_id: d.agente_id, trattativa_id: id, tipo: 'Chiusa — Non interessato', nota: `${d.client_name}: ${note.trim()}`});
+  if(ME.ruolo==='direttore') await notifyAgentStatusChange(d, 'Chiusa — Non interessato');
+  await loadData(); closeDetail();
+}
+
+async function deleteDeal(id) {
+  if (ME.ruolo !== 'direttore') return;
+  const d = deals.find(x => x.id === id);
+  if (!d) return;
+  if (!confirm(`Eliminare definitivamente la trattativa "${d.client_name}"?\nQuesta operazione non è reversibile.`)) return;
+  try {
+    await fetch(`${SUPA_URL}/rest/v1/trattative?id=eq.${id}`, {
+      method: 'DELETE',
+      headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + SUPA_KEY }
+    });
+    await loadData(); closeDetail();
+  } catch(e) { alert('Errore eliminazione: ' + e.message); }
 }
 async function loseDeal(id) {
   const d = deals.find(x => x.id === id);
@@ -1050,8 +1657,8 @@ function renderTeam() {
 // ============================================================
 function renderInsights() {
   const el = document.getElementById('insight-body');
-  const active = deals.filter(d => d.stage >= 0 && d.stage < 4);
-  const won = deals.filter(d => d.stage === 4);
+  const active = deals.filter(d => d.stage >= 0 && d.stage < 5 && !d.archiviata);
+  const won = deals.filter(d => d.stage === 5);
   const lost = deals.filter(d => d.stage === -1);
   const noFollow = active.filter(d => !d.next_followup);
   const lowProb = active.filter(d => d.probabilita === 'low');
@@ -1183,6 +1790,242 @@ function getRemarketingInsights() {
   return html;
 }
 
+
+// ── SCHEDA TECNICA SOLARE PRO ────────────────────────────────
+let schedaFVFiles = { bolletta: null, foto: [], contatore: [], altri: [] };
+let schedaFVDealId = null; // ID trattativa a cui agganciare la scheda
+
+function apriSchedaFV(dealId) {
+  schedaFVDealId = dealId;
+  schedaFVFiles = { bolletta: null, foto: [], contatore: [], cabina: [], altri: [] };
+  // Reset form
+  ['sc-referente','sc-tel','sc-email','sc-via-inst','sc-cap-inst','sc-citta-inst',
+   'sc-prov-inst','sc-gmaps','sc-kwp','sc-kwh','sc-wallbox-n','sc-wallbox-kw',
+   'sc-altro-imp','sc-altezza','sc-n-contatori','sc-pos-contatori','sc-pot-kw',
+   'sc-f1','sc-f2','sc-f3','sc-costo-kwh','sc-canne','sc-note',
+   'sc-via-sede','sc-nciv-sede','sc-cap-sede','sc-citta-sede','sc-prov-sede'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+  ['sc-tipo-edificio','sc-area','sc-soluzione','sc-proprieta','sc-accesso-tetto',
+   'sc-tipo-tetto','sc-copertura','sc-soletta','sc-lucernari','sc-lineavita',
+   'sc-cpi','sc-bt-mt','sc-wifi','sc-paesaggistica'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.selectedIndex = 0;
+  });
+  document.querySelectorAll('input[name="sc-fv-exist"]')[0].checked = true;
+  ['sc-bolletta-name','sc-foto-names','sc-contatore-names','sc-altri-names'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = '';
+  });
+  document.getElementById('sc-error').style.display = 'none';
+  document.getElementById('scheda-fv-modal').classList.add('open');
+}
+
+function chiudiSchedaFV() {
+  document.getElementById('scheda-fv-modal').classList.remove('open');
+}
+
+function handleSchedaFile(tipo, input) {
+  const files = Array.from(input.files);
+  if (!files.length) return;
+  if (tipo === 'bolletta') {
+    schedaFVFiles.bolletta = files[0];
+    document.getElementById('sc-bolletta-name').textContent = '✔ ' + files[0].name;
+  } else {
+    schedaFVFiles[tipo] = [...schedaFVFiles[tipo], ...files];
+    const names = schedaFVFiles[tipo].map(f => f.name).join(', ');
+    document.getElementById(`sc-${tipo}-names`).textContent = '✔ ' + names;
+  }
+  input.value = '';
+}
+
+function onBonusInterestChange() {
+  const val = document.getElementById('sc-bonus-interest').value;
+  document.getElementById('sc-bonus-detail').style.display = val === 'si_sa' ? 'block' : 'none';
+  document.getElementById('sc-ingegneri-note').style.display = val === 'si_ingegneri' ? 'block' : 'none';
+}
+
+function getSchedaFVData() {
+  const fvExist = document.querySelector('input[name="sc-fv-exist"]:checked')?.value || 'no';
+  return {
+    referente:       document.getElementById('sc-referente').value.trim(),
+    tel:             document.getElementById('sc-tel').value.trim(),
+    email:           document.getElementById('sc-email').value.trim(),
+    via_inst:        document.getElementById('sc-via-inst').value.trim(),
+    cap_inst:        document.getElementById('sc-cap-inst').value.trim(),
+    citta_inst:      document.getElementById('sc-citta-inst').value.trim(),
+    prov_inst:       document.getElementById('sc-prov-inst').value.trim(),
+    gmaps:           document.getElementById('sc-gmaps').value.trim(),
+    fv_esistente:    fvExist,
+    kwp:             document.getElementById('sc-kwp').value,
+    kwh:             document.getElementById('sc-kwh').value,
+    wallbox_n:       document.getElementById('sc-wallbox-n').value,
+    wallbox_kw:      document.getElementById('sc-wallbox-kw').value,
+    altro_imp:       document.getElementById('sc-altro-imp').value.trim(),
+    tipo_edificio:   document.getElementById('sc-tipo-edificio').value,
+    area:            document.getElementById('sc-area').value,
+    soluzione:       document.getElementById('sc-soluzione').value,
+    proprieta:       document.getElementById('sc-proprieta').value,
+    sup_int:         document.getElementById('sc-sup-int').value,
+    sup_ext:         document.getElementById('sc-sup-ext').value,
+    altezza:         document.getElementById('sc-altezza').value,
+    cpi:             document.getElementById('sc-cpi').value,
+    accesso_tetto:   document.getElementById('sc-accesso-tetto').value,
+    tipo_tetto:      document.getElementById('sc-tipo-tetto').value,
+    copertura:       document.getElementById('sc-copertura').value,
+    soletta:         document.getElementById('sc-soletta').value,
+    lucernari:       document.getElementById('sc-lucernari').value,
+    lineavita:       document.getElementById('sc-lineavita').value,
+    canne:           document.getElementById('sc-canne').value.trim(),
+    n_contatori:     document.getElementById('sc-n-contatori').value,
+    pos_contatori:   document.getElementById('sc-pos-contatori').value.trim(),
+    pot_kw:          document.getElementById('sc-pot-kw').value,
+    bt_mt:           document.getElementById('sc-bt-mt').value,
+    f1:              document.getElementById('sc-f1').value,
+    f2:              document.getElementById('sc-f2').value,
+    f3:              document.getElementById('sc-f3').value,
+    costo_kwh:       document.getElementById('sc-costo-kwh').value,
+    wifi:            document.getElementById('sc-wifi').value,
+    paesaggistica:   document.getElementById('sc-paesaggistica').value,
+    note:            document.getElementById('sc-note').value.trim(),
+    via_sede:        document.getElementById('sc-via-sede').value.trim(),
+    nciv_sede:       document.getElementById('sc-nciv-sede').value.trim(),
+    cap_sede:        document.getElementById('sc-cap-sede').value.trim(),
+    citta_sede:      document.getElementById('sc-citta-sede').value.trim(),
+    prov_sede:       document.getElementById('sc-prov-sede').value.trim(),
+    bonus_interest:  document.getElementById('sc-bonus-interest').value,
+    bonus_scelti:    [...document.querySelectorAll('#sc-bonus-checks input:checked')].map(c=>c.value).join(', '),
+    pagamento:       document.getElementById('sc-pagamento').value,
+  };
+}
+
+function validaSchedaFV(data) {
+  const campiObbligatori = [
+    ['via_sede', 'Via sede legale'],
+    ['nciv_sede', 'N. Civico sede legale'],
+    ['cap_sede', 'CAP sede legale'],
+    ['citta_sede', 'Città sede legale'],
+    ['prov_sede', 'Provincia sede legale'],
+    ['referente', 'Nome referente'],
+    ['tel', 'Telefono referente'],
+    ['email', 'Email referente'],
+    ['kwp', 'Potenza impianto kWp'],
+    ['tipo_edificio', 'Tipologia edificio'],
+    ['area', 'Area destinata'],
+    ['soluzione', 'Soluzione proposta'],
+    ['proprieta', 'Immobile di proprietà'],
+    ['altezza', 'Altezza edificio'],
+    ['cpi', 'Certificato prevenzione incendi'],
+    ['accesso_tetto', 'Accesso al tetto'],
+    ['tipo_tetto', 'Tipologia tetto'],
+    ['copertura', 'Tipo copertura'],
+    ['soletta', 'Tipo soletta'],
+    ['lucernari', 'Lucernari / traslucidi'],
+    ['lineavita', 'Linea vita'],
+    ['n_contatori', 'Numero contatori'],
+    ['pot_kw', 'Potenza utenza kW'],
+    ['bt_mt', 'Tipo fornitura BT/MT'],
+    ['f1', 'Consumo annuo F1'],
+    ['costo_kwh', 'Costo energia €/kWh'],
+    ['wifi', 'Wi-Fi locale contatore'],
+    ['paesaggistica', 'Pratica paesaggistica'],
+  ];
+  const mancanti = campiObbligatori.filter(([k]) => !data[k]).map(([,l]) => l);
+  if (!schedaFVFiles.bolletta) mancanti.push('Bolletta elettrica');
+  if (!schedaFVFiles.foto.length) mancanti.push('Foto edificio');
+  if (!schedaFVFiles.contatore.length) mancanti.push('Foto locale contatore');
+  return mancanti;
+}
+
+async function uploadSchedaFile(file, trattativaId, categoria) {
+  const path = `${trattativaId}/${categoria}/${file.name}`;
+  const res = await fetch(`${SUPA_URL}/storage/v1/object/offerte-pdf/${path}`, {
+    method: 'POST',
+    headers: {
+      'apikey': SUPA_KEY,
+      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Content-Type': file.type || 'application/octet-stream',
+      'x-upsert': 'true'
+    },
+    body: file
+  });
+  if (!res.ok) return null;
+  const url = `${SUPA_URL}/storage/v1/object/public/offerte-pdf/${path}`;
+  // Salva record in allegati_trattative
+  const d = deals.find(x => x.id === trattativaId);
+  await supaFetch('/rest/v1/allegati_trattative', 'POST', {
+    trattativa_id: trattativaId,
+    nome_file: file.name,
+    tipo: categoria,
+    url,
+    generato_da: 'scheda_solare_pro',
+    agente_nome: ME.nome || '',
+    cliente_nome: d ? d.client_name : '',
+  });
+  return url;
+}
+
+async function salvaSchedaFV() {
+  const data = getSchedaFVData();
+  const mancanti = validaSchedaFV(data);
+  if (mancanti.length) {
+    const errEl = document.getElementById('sc-error');
+    errEl.innerHTML = '<strong>Campi obbligatori mancanti:</strong><br>' + mancanti.join(', ');
+    errEl.style.display = 'block';
+    errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    return;
+  }
+  document.getElementById('sc-error').style.display = 'none';
+
+  // Salva i dati tecnici come nota estesa sulla trattativa
+  const schedaNota = Object.entries(data)
+    .filter(([,v]) => v)
+    .map(([k,v]) => `${k}: ${v}`)
+    .join(' | ');
+
+  // Genera codice offerta univoco
+  const codiceOfferta = generaCodiceOfferta('fv_pro');
+  const deal = deals.find(x => x.id === schedaFVDealId);
+
+  // Aggiorna la trattativa con i dati della scheda
+  if (schedaFVDealId) {
+    await updateDeal(schedaFVDealId, {
+      note: (schedaNota ? '[SCHEDA FV PRO] ' + schedaNota : ''),
+      scheda_fv_pro: JSON.stringify(data),
+      codice_offerta: codiceOfferta,
+      stage: 2
+    });
+
+    // Upload file su Supabase Storage
+    const uploads = [];
+    if (schedaFVFiles.bolletta) uploads.push(uploadSchedaFile(schedaFVFiles.bolletta, schedaFVDealId, 'bolletta'));
+    schedaFVFiles.foto.forEach(f => uploads.push(uploadSchedaFile(f, schedaFVDealId, 'foto_edificio')));
+    schedaFVFiles.contatore.forEach(f => uploads.push(uploadSchedaFile(f, schedaFVDealId, 'foto_contatore')));
+    schedaFVFiles.cabina.forEach(f => uploads.push(uploadSchedaFile(f, schedaFVDealId, 'foto_cabina')));
+    schedaFVFiles.altri.forEach(f => uploads.push(uploadSchedaFile(f, schedaFVDealId, 'altri_documenti')));
+    await Promise.all(uploads);
+
+    await insertLog({
+      agente_id: ME.id,
+      trattativa_id: schedaFVDealId,
+      tipo: 'Scheda FV Pro compilata',
+      nota: `Scheda tecnica completa + ${uploads.length} file allegati`
+    });
+  }
+
+  chiudiSchedaFV();
+  await loadData();
+
+  // Invia email a nicola@ruganicola.it con tutti i dati scheda
+  if (deal) await inviaEmailSchedaFV(deal, data, codiceOfferta);
+
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green2);color:#fff;padding:14px 22px;border-radius:var(--r);font-size:13px;font-family:var(--font);z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);line-height:1.5';
+  toast.innerHTML = `✓ Scheda salvata — Rif. <strong>${codiceOfferta}</strong><br><span style="font-size:11px;opacity:.85">Email inviata a nicola@ruganicola.it</span>`;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 5000);
+}
 
 // ── NOTIFICHE EMAIL ──────────────────────────────────────────────────────────
 // Le email vengono lette direttamente da Supabase (tabella agenti_tracker.email)

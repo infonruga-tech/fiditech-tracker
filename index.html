@@ -1254,7 +1254,6 @@ function getStatusIndicator(d) {
 }
 
 // ── ALLEGATI ────────────────────────────────────────────────────
-const SUPA_URL = 'https://emgfuujluqliuogkyfys.supabase.co';
 
 function generaCodiceOfferta(prodotto) {
   const prefissi = { fv: 'MS', fv_pro: 'SP', illumina: 'IL', bonus: 'BN',
@@ -1339,7 +1338,6 @@ async function supaFetch(path, method, body) {
   });
   return res.ok ? res.json() : null;
 }
-const SUPA_KEY = 'sb_publishable_9lgVhSf2f1r3OHDacXKRPw_vDYg4noX';
 
 async function loadAllegati(trattativaId) {
   try {

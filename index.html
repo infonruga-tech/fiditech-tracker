@@ -45,12 +45,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 #app{display:none;height:100vh;display:none;flex-direction:column;}
 #app.visible{display:flex;}
 
-.topbar{display:flex;align-items:center;gap:0;padding:0 20px;height:48px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
+.topbar{display:flex;align-items:center;gap:0;padding:0 12px;height:48px;background:var(--bg2);border-bottom:1px solid var(--border);flex-shrink:0;}
 .topbar-logo{display:flex;align-items:center;margin-right:16px;}
-.topbar-tabs{display:flex;height:100%;gap:0;}
-.topbar-tab{padding:0 16px;font-size:13px;cursor:pointer;color:var(--text2);background:transparent;border:none;font-family:var(--font);border-bottom:2px solid transparent;height:100%;display:flex;align-items:center;transition:all .15s;}
+.topbar-tabs{display:flex;height:100%;gap:0;overflow-x:auto;flex-shrink:1;}
+.topbar-tab{padding:0 11px;font-size:12px;cursor:pointer;color:var(--text2);background:transparent;border:none;font-family:var(--font);border-bottom:2px solid transparent;height:100%;display:flex;align-items:center;transition:all .15s;}
 .topbar-tab:hover{color:var(--text);}
-.topbar-tab.active{color:var(--amber2);border-bottom-color:var(--amber);}
+.topbar-tab.active{color:var(--amber2);border-bottom-color:var(--amber);}  #tab-archivio{display:flex!important;}
 .topbar-right{margin-left:auto;display:flex;align-items:center;gap:12px;}
 .user-chip{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);}
 .user-avatar{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;background:var(--amber-bg);color:var(--amber2);border:1px solid var(--amber-border);}
@@ -83,7 +83,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 
 /* Pipeline */
 .pipe-wrap{overflow-x:auto;padding-bottom:8px;}
-.pipe-cols{display:grid;grid-template-columns:repeat(5,minmax(170px,1fr));gap:8px;min-width:900px;}
+.pipe-cols{display:grid;grid-template-columns:repeat(6,minmax(170px,1fr));gap:8px;min-width:1100px;}
 .pipe-col{background:var(--bg2);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;}
 .pipe-head{padding:9px 12px;font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono);display:flex;justify-content:space-between;align-items:center;}
 .pipe-body{padding:8px;min-height:60px;}
@@ -995,7 +995,7 @@ async function doLogin() {
   const PASSWORD_TEMP = 'fiditech2025';
 
   try {
-    const agents = await sbFetch(`agenti_tracker?email=eq.${encodeURIComponent(email)}&attivo=eq.true`);
+    const agents = await sbFetch(`agenti_tracker?email=eq.${encodeURIComponent(email)}&or=(attivo.eq.true,attivo.is.null)`);
     if (!agents || agents.length === 0 || pwd !== PASSWORD_TEMP) {
       document.getElementById('login-err').style.display = 'block';
       return;
@@ -1040,7 +1040,7 @@ async function startApp() {
 
   // Aggiorna topbar
   document.getElementById('top-av').textContent = ME.avatar || ME.nome.substring(0,2).toUpperCase();
-  document.getElementById('top-name').textContent = ME.nome;
+  document.getElementById('top-name').textContent = ME.nome + ' [' + ME.ruolo + ']';
 
   // Mostra/nascondi tab solo per direttore
   const isDirettore = ME.ruolo === 'direttore';

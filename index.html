@@ -1543,7 +1543,17 @@ function closeDealModal() { document.getElementById('deal-modal').classList.remo
 
 async function saveDeal() {
   const agenteId = document.getElementById('f-agent').value || ME.id;
+  const prodotto = document.getElementById('f-prod').value;
   const piva = document.getElementById('f-piva').value.trim();
+
+  // Validazione scheda tecnica inline
+  const schedaErr = validaSchedaInline(prodotto);
+  if (schedaErr) {
+    alert('Scheda tecnica incompleta. Compila i seguenti campi obbligatori:\n\n' + schedaErr);
+    document.getElementById('scheda-inline')?.scrollIntoView({behavior:'smooth', block:'start'});
+    return;
+  }
+  const schedaInlineData = raccogliSchedaInline(prodotto);
   const sediExtra = Array.from(document.querySelectorAll('.sede-extra-input')).map(i=>i.value.trim()).filter(Boolean);
   const rejTags = Array.from(document.querySelectorAll('#rejection-tags .tag.sel')).map(t=>t.dataset.tag||t.textContent).join(',');
   const data = {
@@ -1563,7 +1573,14 @@ async function saveDeal() {
     next_action: document.getElementById('f-next-action').value || null,
     rejection_tags: rejTags || null,
     rejection_note: document.getElementById('f-rejection-note')?.value?.trim() || null,
+    scheda_inline: schedaInlineData ? JSON.stringify(schedaInlineData) : null,
   };
+  // Auto-imposta fase e data se c'è scheda tecnica
+  if (schedaInlineData) {
+    data.stage = 2;
+    data.next_followup = new Date().toISOString().split('T')[0];
+    data.next_action = 'Prepara offerta';
+  }
   if (editingDealId) {
     await updateDeal(editingDealId, data);
     await insertLog({agente_id: agenteId, trattativa_id: editingDealId, tipo: 'Aggiornamento trattativa', nota: `${data.client_name} aggiornata`});
@@ -2021,6 +2038,14 @@ async function salvaSchedaFV() {
     });
   }
 
+  // Imposta automaticamente: fase "Prepara offerta" + data odierna
+  const oggi = new Date().toISOString().split('T')[0];
+  await updateDeal(schedaFVDealId, {
+    stage: 2,
+    next_followup: oggi,
+    next_action: 'Prepara offerta'
+  });
+
   chiudiSchedaFV();
   await loadData();
 
@@ -2029,7 +2054,7 @@ async function salvaSchedaFV() {
 
   const toast = document.createElement('div');
   toast.style.cssText = 'position:fixed;bottom:24px;right:24px;background:var(--green2);color:#fff;padding:14px 22px;border-radius:var(--r);font-size:13px;font-family:var(--font);z-index:9999;box-shadow:0 4px 12px rgba(0,0,0,.2);line-height:1.5';
-  toast.innerHTML = `✓ Scheda salvata — Rif. <strong>${codiceOfferta}</strong><br><span style="font-size:11px;opacity:.85">Email inviata a nicola@ruganicola.it</span>`;
+  toast.innerHTML = `✓ Scheda salvata — Rif. <strong>${codiceOfferta}</strong><br><span style="font-size:11px;opacity:.85">Email inviata · Fase aggiornata a "Prepara offerta"</span>`;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 5000);
 }
@@ -2184,7 +2209,6 @@ function raccogliSchedaInline(prodotto) {
 // Email via Resend (configurato su Railway backend o Supabase Edge Function)
 // Per ora usa Supabase Edge Function 'send-email' se presente, altrimenti log
 const NOTIFY_URL = 'https://emgfuujluqliuogkyfys.supabase.co/functions/v1/send-email';
-const SUPA_KEY_NOTIFY = 'sb_publishable_9lgVhSf2f1r3OHDacXKRPw_vDYg4noX';
 
 // Email di fallback dal documento di stato (se Supabase non ha l'email)
 const EMAIL_FALLBACK = {
@@ -2200,19 +2224,23 @@ async function sendEmail(to, toName, subject, bodyHtml) {
     return;
   }
   try {
-    // Prima prova Supabase Edge Function (Resend)
     const res = await fetch(NOTIFY_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + SUPA_KEY_NOTIFY
+        'apikey': SUPA_KEY,
+        'Authorization': 'Bearer ' + SUPA_KEY,
       },
       body: JSON.stringify({to, toName, subject, bodyHtml})
     });
-    if (!res.ok) throw new Error('Edge function error: ' + res.status);
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) {
+      console.warn('Edge function error:', res.status, data);
+    } else {
+      console.log('Email inviata a', to, data);
+    }
   } catch(e) {
-    console.warn('Notifica email non inviata:', e.message,
-      '— Configura send-email Edge Function su Supabase con Resend');
+    console.warn('Notifica email non inviata:', e.message);
   }
 }
 

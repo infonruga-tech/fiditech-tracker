@@ -375,6 +375,15 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
         <select class="f-select" id="f-agent"></select>
       </div>
     </div>
+
+    <!-- SCHEDA TECNICA INLINE — appare in base al prodotto selezionato -->
+    <div id="scheda-inline" style="display:none;">
+      <div style="height:1px;background:var(--border);margin:14px 0;"></div>
+      <div id="scheda-inline-title" style="font-size:11px;font-family:var(--mono);color:var(--amber2);text-transform:uppercase;letter-spacing:.07em;margin-bottom:12px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);padding:8px 12px;">
+        📋 Scheda tecnica — compilazione obbligatoria
+      </div>
+      <div id="scheda-inline-content"></div>
+    </div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Valore stimato €</label><input class="f-input" type="number" id="f-val" placeholder="5000"></div>
       <div class="f-row"><label class="f-label">Fase</label>
@@ -2025,6 +2034,149 @@ async function salvaSchedaFV() {
   setTimeout(() => toast.remove(), 5000);
 }
 
+// ── SCHEDA INLINE — VALIDAZIONE E RACCOLTA DATI ─────────────
+function g(id) { const el = document.getElementById(id); return el ? el.value.trim() : ''; }
+function gr(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
+
+function validaSchedaInline(prodotto) {
+  const mancanti = [];
+
+  if (prodotto === 'fv') {
+    if (!g('si-referente')) mancanti.push('Nome referente');
+    if (!g('si-tel')) mancanti.push('Telefono referente');
+    if (!g('si-email')) mancanti.push('Email referente');
+    if (!g('si-kwp')) mancanti.push('Potenza kWp');
+    if (!g('si-tipo-ed')) mancanti.push('Tipologia edificio');
+    if (!g('si-area')) mancanti.push('Area destinata');
+    if (!g('si-prop')) mancanti.push('Proprietà immobile');
+    if (!g('si-altezza')) mancanti.push('Altezza edificio');
+    if (!g('si-accesso')) mancanti.push('Accesso al tetto');
+    if (!g('si-tipo-tetto')) mancanti.push('Tipo tetto');
+    if (!g('si-orient')) mancanti.push('Orientamento');
+    if (!g('si-cop')) mancanti.push('Tipo copertura');
+    if (!g('si-sol')) mancanti.push('Tipo soletta');
+    if (!g('si-luc')) mancanti.push('Lucernari');
+    if (!g('si-lv')) mancanti.push('Linea vita');
+    if (!g('si-cont')) mancanti.push('Posizione contatore');
+    if (!g('si-pot')) mancanti.push('Potenza kW');
+    if (!g('si-bt')) mancanti.push('BT/MT');
+    if (!g('si-f1')) mancanti.push('Consumo F1');
+    if (!g('si-costo')) mancanti.push('Costo €/kWh');
+    if (!g('si-wifi')) mancanti.push('Wi-Fi');
+    if (!g('si-paes')) mancanti.push('Paesaggistica');
+  }
+
+  if (prodotto === 'illumina') {
+    if (!g('si-motiv')) mancanti.push('Motivazione');
+    if (!g('si-tipo-att')) mancanti.push('Tipo attività');
+    if (!g('si-ref-nome')) mancanti.push('Referente nome');
+    if (!g('si-ref-tel')) mancanti.push('Tel referente');
+    if (!g('si-ref-email')) mancanti.push('Email referente');
+    if (!g('si-n-luce')) mancanti.push('N. punti luce');
+    if (!g('si-tech')) mancanti.push('Tecnologia attuale');
+    if (!g('si-watt')) mancanti.push('Potenza W');
+    if (!g('si-ore')) mancanti.push('Ore/giorno');
+    if (!g('si-giorni')) mancanti.push('Giorni/anno');
+    if (!g('si-costo-led')) mancanti.push('Costo €/kWh');
+    if (!g('si-manutenzione')) mancanti.push('Costo manutenzione');
+    if (!g('si-luce-des')) mancanti.push('Livello luce desiderato');
+    if (!g('si-access')) mancanti.push('Accessibilità');
+    if (!g('si-orari')) mancanti.push('Orari intervento');
+    if (!g('si-smalt')) mancanti.push('Smaltimento');
+    if (!g('si-budget-led')) mancanti.push('Budget');
+  }
+
+  if (prodotto === 'efficienza') {
+    const tipo = gr('si-eff-tipo');
+    if (!tipo) { mancanti.push('Tipo intervento (caldaia/clima/entrambi)'); }
+    else {
+      if (tipo === 'caldaia' || tipo === 'entrambi') {
+        if (!gr('si-tipo-int-cald')) mancanti.push('Nuovo impianto o sostituzione (caldaia)');
+        if (!g('si-cald-marca')) mancanti.push('Marca/modello caldaia');
+        if (!g('si-cald-pos')) mancanti.push('Posizione caldaia');
+        if (!g('si-fumi')) mancanti.push('Tipo scarico fumi');
+        if (!g('si-alt-fumi')) mancanti.push('Altezza scarico fumi');
+        if (!g('si-cond-canna')) mancanti.push('Canna fumaria a condensazione');
+        if (!g('si-incam')) mancanti.push('Incamiciamento');
+        if (!g('si-condensa')) mancanti.push('Distanza scarico condensa');
+        if (!g('si-pend')) mancanti.push('Pendenza condensa');
+        if (!g('si-valvole')) mancanti.push('Valvole di zona');
+        if (!g('si-n-termo')) mancanti.push('N. termosifoni');
+        if (!g('si-pavim')) mancanti.push('Impianto a pavimento');
+        if (!g('si-ghisa')) mancanti.push('N. termosifoni in ghisa');
+        if (!g('si-monotubo')) mancanti.push('Valvole monotubo');
+        if (!g('si-areaz')) mancanti.push('Areazione stanza');
+        if (!g('si-mq')) mancanti.push('Metratura appartamento');
+        if (!g('si-cestello-c')) mancanti.push('Necessità cestello (caldaia)');
+      }
+      if (tipo === 'clima' || tipo === 'entrambi') {
+        if (!gr('si-tipo-int-clima')) mancanti.push('Nuovo impianto o sostituzione (clima)');
+        if (!g('si-clima-marca')) mancanti.push('Marca/modello clima');
+        if (!g('si-pred')) mancanti.push('Predisposizione esistente');
+        if (!g('si-n-stanze')) mancanti.push('N. stanze');
+        if (!g('si-dist1')) mancanti.push('Distanza split 1');
+        if (!g('si-mis-est')) mancanti.push('Misure unità esterna');
+        if (!g('si-mt-terra')) mancanti.push('Metri da terra unità esterna');
+        if (!g('si-lv-clima')) mancanti.push('Linea vita tetto');
+        if (!g('si-cestello-cl')) mancanti.push('Necessità cestello (clima)');
+      }
+    }
+  }
+
+  return mancanti.length ? mancanti.join(', ') : null;
+}
+
+function raccogliSchedaInline(prodotto) {
+  if (prodotto === 'fv') {
+    return {
+      referente: g('si-referente'), tel: g('si-tel'), email: g('si-email'),
+      addr_inst: g('si-addr-inst'), gmaps: g('si-gmaps'),
+      fv_exist: gr('si-fv-exist'), kwp: g('si-kwp'), kwh: g('si-kwh'),
+      wallbox_n: g('si-wallbox-n'), wallbox_kw: g('si-wallbox-kw'),
+      tipo_ed: g('si-tipo-ed'), area: g('si-area'), prop: g('si-prop'),
+      altezza: g('si-altezza'), accesso: g('si-accesso'), tipo_tetto: g('si-tipo-tetto'),
+      orient: g('si-orient'), cop: g('si-cop'), sol: g('si-sol'),
+      luc: g('si-luc'), ombra: g('si-ombra'), lv: g('si-lv'),
+      cont: g('si-cont'), pot: g('si-pot'), bt: g('si-bt'),
+      f1: g('si-f1'), costo: g('si-costo'), wifi: g('si-wifi'),
+      paes: g('si-paes'), pind: g('si-pind'), note: g('si-note'),
+    };
+  }
+  if (prodotto === 'illumina') {
+    return {
+      motiv: g('si-motiv'), tipo_att: g('si-tipo-att'),
+      ref_nome: g('si-ref-nome'), ref_tel: g('si-ref-tel'), ref_email: g('si-ref-email'),
+      n_luce: g('si-n-luce'), tech: g('si-tech'), watt: g('si-watt'),
+      ore: g('si-ore'), giorni: g('si-giorni'), costo: g('si-costo-led'),
+      manutenzione: g('si-manutenzione'), luce_des: g('si-luce-des'),
+      kelvin: g('si-kelvin'), dim: g('si-dim'), smart: g('si-smart'),
+      access: g('si-access'), orari: g('si-orari'), smalt: g('si-smalt'),
+      budget: g('si-budget-led'),
+    };
+  }
+  if (prodotto === 'efficienza') {
+    const tipo = gr('si-eff-tipo');
+    const cald = tipo === 'caldaia' || tipo === 'entrambi' ? {
+      tipo_int: gr('si-tipo-int-cald'), marca: g('si-cald-marca'),
+      pos: g('si-cald-pos'), nicchia: g('si-nicchia'), fumi: g('si-fumi'),
+      alt_fumi: g('si-alt-fumi'), cond_canna: g('si-cond-canna'),
+      incam: g('si-incam'), condensa: g('si-condensa'), pend: g('si-pend'),
+      valvole: g('si-valvole'), n_termo: g('si-n-termo'), pavim: g('si-pavim'),
+      ghisa: g('si-ghisa'), monotubo: g('si-monotubo'), areaz: g('si-areaz'),
+      mq: g('si-mq'), cestello: g('si-cestello-c'),
+    } : null;
+    const clim = tipo === 'clima' || tipo === 'entrambi' ? {
+      tipo_int: gr('si-tipo-int-clima'), marca: g('si-clima-marca'),
+      pred: g('si-pred'), n_stanze: g('si-n-stanze'),
+      dist1: g('si-dist1'), dist2: g('si-dist2'), dist3: g('si-dist3'),
+      mis_est: g('si-mis-est'), mt_terra: g('si-mt-terra'),
+      lv: g('si-lv-clima'), cestello: g('si-cestello-cl'),
+    } : null;
+    return { tipo, caldaia: cald, clima: clim };
+  }
+  return null;
+}
+
 // ── NOTIFICHE EMAIL ──────────────────────────────────────────────────────────
 // Le email vengono lette direttamente da Supabase (tabella agenti_tracker.email)
 // ME.email = email dell'utente loggato (direttore o agente)
@@ -2138,20 +2290,345 @@ async function notifyAgentBounce(d, note) {
 }
 
 // ── CONFIGURATORI ─────────────────────────────────────────────────────────────
+// Schede tecniche inline per ogni prodotto
+const SCHEDE_HTML = {
+
+  fv: `
+    <div class="scheda-section-title">👤 Referente cliente</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Nome e Cognome <span class="req">*</span></label><input class="f-input" id="si-referente" placeholder="Es. Mario Rossi"></div>
+      <div class="f-row"><label class="f-label">Telefono <span class="req">*</span></label><input class="f-input" id="si-tel" placeholder="Es. 348 1234567"></div>
+    </div>
+    <div class="f-row"><label class="f-label">Email <span class="req">*</span></label><input class="f-input" id="si-email" type="email" placeholder="cliente@email.it"></div>
+    <div class="f-row"><label class="f-label">Indirizzo installazione (se diverso dalla sede)</label><input class="f-input" id="si-addr-inst" placeholder="Via, N. Civico, CAP, Città"></div>
+    <div class="f-row"><label class="f-label">Localizzatore Google Maps</label><input class="f-input" id="si-gmaps" placeholder="Incolla il link Google Maps"></div>
+    <div class="scheda-section-title">☀ Impianto</div>
+    <div class="f-row"><label class="f-label">Impianto FV esistente? <span class="req">*</span></label>
+      <div class="radio-row"><label><input type="radio" name="si-fv-exist" value="no" checked> No</label><label><input type="radio" name="si-fv-exist" value="si"> Sì</label></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Potenza kWp <span class="req">*</span></label><input class="f-input" id="si-kwp" type="number" placeholder="Es. 6"></div>
+      <div class="f-row"><label class="f-label">Accumulo kWh (facoltativo)</label><input class="f-input" id="si-kwh" type="number" placeholder="Es. 10"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Wallbox n. colonnine</label><input class="f-input" id="si-wallbox-n" type="number" placeholder="0"></div>
+      <div class="f-row"><label class="f-label">Wallbox kW</label><input class="f-input" id="si-wallbox-kw" type="number" placeholder="Es. 7.4"></div>
+    </div>
+    <div class="scheda-section-title">🏠 Edificio</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Tipologia edificio <span class="req">*</span></label>
+        <select class="f-select" id="si-tipo-ed"><option value="">—</option><option>Casa indipendente</option><option>Contesto condominiale</option><option>Villa</option><option>Altro</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Area destinata <span class="req">*</span></label>
+        <select class="f-select" id="si-area"><option value="">—</option><option>A tetto</option><option>A terra</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Immobile di proprietà <span class="req">*</span></label>
+        <select class="f-select" id="si-prop"><option value="">—</option><option>Sì</option><option>Affitto</option><option>Altro</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Altezza edificio mt <span class="req">*</span></label><input class="f-input" id="si-altezza" type="number" placeholder="Es. 7"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Accesso al tetto <span class="req">*</span></label>
+        <select class="f-select" id="si-accesso"><option value="">—</option><option>Sì</option><option>No</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Tipo tetto <span class="req">*</span></label>
+        <select class="f-select" id="si-tipo-tetto"><option value="">—</option><option>Falde</option><option>Piano</option><option>Altro</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Orientamento <span class="req">*</span></label>
+        <select class="f-select" id="si-orient"><option value="">—</option><option>Sud</option><option>Sud/Est</option><option>Est</option><option>Sud/Ovest</option><option>Ovest</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Tipo copertura <span class="req">*</span></label>
+        <select class="f-select" id="si-cop"><option value="">—</option><option>Tegole</option><option>Cemento</option><option>Amianto — BONIFICA</option><option>Lamiera</option><option>Altro</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Tipo soletta <span class="req">*</span></label>
+        <select class="f-select" id="si-sol"><option value="">—</option><option>Cemento armato</option><option>Travi legno</option><option>Travi acciaio</option><option>Altro</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Lucernari <span class="req">*</span></label>
+        <select class="f-select" id="si-luc"><option value="">—</option><option>No</option><option>Sì</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Zone d'ombra (facoltativo)</label><input class="f-input" id="si-ombra" placeholder="Es. canne fumarie, antenne, alberi"></div>
+      <div class="f-row"><label class="f-label">Linea vita <span class="req">*</span></label>
+        <select class="f-select" id="si-lv"><option value="">—</option><option>Sì</option><option>No</option></select>
+      </div>
+    </div>
+    <div class="scheda-section-title">⚡ Dati elettrici</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Posizione contatore <span class="req">*</span></label><input class="f-input" id="si-cont" placeholder="Es. ingresso, cantina"></div>
+      <div class="f-row"><label class="f-label">Potenza kW <span class="req">*</span></label><input class="f-input" id="si-pot" type="number" placeholder="Es. 6"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Fornitura <span class="req">*</span></label>
+        <select class="f-select" id="si-bt"><option value="">—</option><option>BT</option><option>MT</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Consumo F1 kWh/anno <span class="req">*</span></label><input class="f-input" id="si-f1" type="number" placeholder="Es. 3000"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Costo €/kWh <span class="req">*</span></label><input class="f-input" id="si-costo" type="number" step="0.01" placeholder="Es. 0.24"></div>
+      <div class="f-row"><label class="f-label">Wi-Fi contatore <span class="req">*</span></label>
+        <select class="f-select" id="si-wifi"><option value="">—</option><option>Sì</option><option>No</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Paesaggistica <span class="req">*</span></label>
+        <select class="f-select" id="si-paes"><option value="">—</option><option>No</option><option>Sì — zona vincolata</option><option>Da verificare</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Piano induzione</label>
+        <select class="f-select" id="si-pind"><option value="">—</option><option>Presente</option><option>Da acquistare</option><option>No</option></select>
+      </div>
+    </div>
+    <div class="scheda-section-title">📎 Documenti obbligatori</div>
+    <div class="scheda-docs-note">Allegare: bolletta elettrica + foto tutti i lati immobile + foto contatore + foto quadro elettrico</div>
+    <div class="f-row"><label class="f-label">Note (facoltativo)</label><textarea class="f-textarea" id="si-note" rows="2" placeholder="Qualsiasi informazione utile..."></textarea></div>`,
+
+  illumina: `
+    <div class="scheda-section-title">🏢 Cliente e struttura</div>
+    <div class="f-row"><label class="f-label">Motivazione principale <span class="req">*</span></label>
+      <select class="f-select" id="si-motiv"><option value="">—</option><option>Risparmio energetico</option><option>Miglioramento illuminazione</option><option>Riduzione manutenzione</option><option>Adeguamento normative</option><option>Altro</option></select>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Tipo attività <span class="req">*</span></label><input class="f-input" id="si-tipo-att" placeholder="Es. ufficio, capannone, supermercato"></div>
+      <div class="f-row"><label class="f-label">Referente (nome e ruolo) <span class="req">*</span></label><input class="f-input" id="si-ref-nome" placeholder="Es. Mario Rossi — Responsabile"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Tel referente <span class="req">*</span></label><input class="f-input" id="si-ref-tel" type="tel" placeholder="348 1234567"></div>
+      <div class="f-row"><label class="f-label">Email referente <span class="req">*</span></label><input class="f-input" id="si-ref-email" type="email" placeholder="referente@azienda.it"></div>
+    </div>
+    <div class="scheda-section-title">💡 Analisi esistente</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">N. punti luce da sostituire <span class="req">*</span></label><input class="f-input" id="si-n-luce" type="number" placeholder="Es. 50"></div>
+      <div class="f-row"><label class="f-label">Tecnologia attuale <span class="req">*</span></label>
+        <select class="f-select" id="si-tech"><option value="">—</option><option>Tubi neon T8/T5</option><option>Vapori di sodio</option><option>Alogenuri metallici</option><option>Alogene</option><option>Fluorescenti compatte</option><option>Incandescenti</option><option>Misto</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Potenza attuale W/lampada <span class="req">*</span></label><input class="f-input" id="si-watt" placeholder="Es. 36W (neon T8)"></div>
+      <div class="f-row"><label class="f-label">Ore/giorno accensione <span class="req">*</span></label><input class="f-input" id="si-ore" type="number" placeholder="Es. 10"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Giorni/anno <span class="req">*</span></label><input class="f-input" id="si-giorni" type="number" placeholder="Es. 300"></div>
+      <div class="f-row"><label class="f-label">Costo energia €/kWh <span class="req">*</span></label><input class="f-input" id="si-costo-led" type="number" step="0.01" placeholder="Es. 0.24"></div>
+    </div>
+    <div class="f-row"><label class="f-label">Costo manutenzione annuo (lampade + manodopera) <span class="req">*</span></label><input class="f-input" id="si-manutenzione" placeholder="Es. €500/anno"></div>
+    <div class="scheda-section-title">🔧 Nuovo impianto</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Livello luce desiderato <span class="req">*</span></label>
+        <select class="f-select" id="si-luce-des"><option value="">—</option><option>Uguale all'attuale</option><option>Più intenso</option><option>Meno intenso</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Temperatura colore (facoltativo)</label>
+        <select class="f-select" id="si-kelvin"><option value="">—</option><option>Calda 2700-3000K</option><option>Neutra 4000K</option><option>Fredda 5000-6000K</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Dimmerabilità (facoltativo)</label>
+        <select class="f-select" id="si-dim"><option value="">—</option><option>Non necessaria</option><option>Sì — impianto già presente</option><option>Sì — da installare</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Controllo smart (facoltativo)</label>
+        <select class="f-select" id="si-smart"><option value="">—</option><option>No</option><option>Sì — sensori movimento</option><option>Sì — controllo app</option><option>Sì — building automation</option></select>
+      </div>
+    </div>
+    <div class="scheda-section-title">🚛 Logistica</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Accessibilità punti luce <span class="req">*</span></label>
+        <select class="f-select" id="si-access"><option value="">—</option><option>Facile — scale normali</option><option>Difficile — piattaforma aerea</option><option>Difficile — trabattello</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Orari intervento <span class="req">*</span></label>
+        <select class="f-select" id="si-orari"><option value="">—</option><option>Orario lavorativo</option><option>Fuori orario (notte/weekend)</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Smaltimento vecchie lampade <span class="req">*</span></label>
+        <select class="f-select" id="si-smalt"><option value="">—</option><option>Sì — provvediamo noi</option><option>No — cliente autonomo</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Budget orientativo <span class="req">*</span></label><input class="f-input" id="si-budget-led" placeholder="Es. €5.000 oppure non definito"></div>
+    </div>
+    <div class="scheda-section-title">📎 Documenti</div>
+    <div class="scheda-docs-note">Allegare: foto ambienti + foto corpi illuminanti + foto targhette tecniche</div>`,
+
+  efficienza_caldaia: `
+    <div class="scheda-section-title">🔧 Tipo intervento</div>
+    <div class="f-row"><label class="f-label">Tipo intervento <span class="req">*</span></label>
+      <div class="radio-row">
+        <label><input type="radio" name="si-tipo-int-cald" value="sostituzione" checked> Sostituzione vecchia caldaia</label>
+        <label><input type="radio" name="si-tipo-int-cald" value="nuovo"> Nuovo impianto</label>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Marca, modello e kW caldaia esistente <span class="req">*</span></label><input class="f-input" id="si-cald-marca" placeholder="Es. Baxi Nuvola 3 24kW"></div>
+    <div class="scheda-section-title">📷 Documentazione fotografica</div>
+    <div class="scheda-docs-note">Obbligatorio allegare: foto caldaia frontale + foto attacchi idraulici sotto caldaia + foto sopra caldaia + foto camino sul tetto (se accessibile) + foto attacchi termosifoni</div>
+    <div class="scheda-section-title">🏠 Caratteristiche impianto</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Caldaia interna o esterna <span class="req">*</span></label>
+        <select class="f-select" id="si-cald-pos"><option value="">—</option><option>Interna</option><option>Esterna</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Nicchia? Se sì, misure</label><input class="f-input" id="si-nicchia" placeholder="Es. 60x80cm oppure No"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Tipo scarico fumi <span class="req">*</span></label>
+        <select class="f-select" id="si-fumi"><option value="">—</option><option>Canna fumaria singola</option><option>Scarico in facciata</option><option>Da predisporre</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Altezza scarico in facciata (min 2,10mt) <span class="req">*</span></label><input class="f-input" id="si-alt-fumi" placeholder="Es. 2,30 mt"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Canna fumaria a condensazione <span class="req">*</span></label>
+        <select class="f-select" id="si-cond-canna"><option value="">—</option><option>Sì</option><option>No</option><option>Da verificare</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Incamiciamento necessario <span class="req">*</span></label>
+        <select class="f-select" id="si-incam"><option value="">—</option><option>Sì</option><option>No</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Distanza scarico condensa <span class="req">*</span></label><input class="f-input" id="si-condensa" placeholder="Es. 3 mt"></div>
+      <div class="f-row"><label class="f-label">Pendenza condensa sufficiente <span class="req">*</span></label>
+        <select class="f-select" id="si-pend"><option value="">—</option><option>Sì</option><option>No — serve pompa rilancio</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Valvole di zona presenti <span class="req">*</span></label>
+        <select class="f-select" id="si-valvole"><option value="">—</option><option>Sì</option><option>No</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">N. termosifoni <span class="req">*</span></label><input class="f-input" id="si-n-termo" type="number" placeholder="Es. 8"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Impianto a pavimento <span class="req">*</span></label>
+        <select class="f-select" id="si-pavim"><option value="">—</option><option>Sì</option><option>No</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">N. termosifoni in ghisa <span class="req">*</span></label><input class="f-input" id="si-ghisa" type="number" placeholder="Es. 2"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Valvole termostatiche monotubo (n.) <span class="req">*</span></label><input class="f-input" id="si-monotubo" type="number" placeholder="Es. 0"></div>
+      <div class="f-row"><label class="f-label">Foro areazione stanza <span class="req">*</span></label>
+        <select class="f-select" id="si-areaz"><option value="">—</option><option>Presente</option><option>Assente</option></select>
+      </div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Metratura appartamento mq <span class="req">*</span></label><input class="f-input" id="si-mq" type="number" placeholder="Es. 90"></div>
+      <div class="f-row"><label class="f-label">Necessità cestello <span class="req">*</span></label>
+        <select class="f-select" id="si-cestello-c"><option value="">—</option><option>No</option><option>Sì</option></select>
+      </div>
+    </div>
+    <div class="scheda-section-title">📎 Documenti</div>
+    <div class="scheda-docs-note">Foto: caldaia frontale • attacchi idraulici • sopra caldaia • camino tetto • tutti gli attacchi termosifoni</div>`,
+
+  efficienza_clima: `
+    <div class="scheda-section-title">❄ Tipo intervento</div>
+    <div class="f-row"><label class="f-label">Tipo intervento <span class="req">*</span></label>
+      <div class="radio-row">
+        <label><input type="radio" name="si-tipo-int-clima" value="sostituzione" checked> Sostituzione esistente</label>
+        <label><input type="radio" name="si-tipo-int-clima" value="nuovo"> Nuovo impianto</label>
+      </div>
+    </div>
+    <div class="f-row"><label class="f-label">Marca, modello e kW clima esistente (se presente) <span class="req">*</span></label><input class="f-input" id="si-clima-marca" placeholder="Es. Daikin 12000 BTU oppure Non presente"></div>
+    <div class="f-row"><label class="f-label">Predisposizione esistente? <span class="req">*</span></label>
+      <select class="f-select" id="si-pred"><option value="">—</option><option>Sì</option><option>No</option></select>
+    </div>
+    <div class="scheda-section-title">📐 Caratteristiche installazione</div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">N. stanze da climatizzare <span class="req">*</span></label><input class="f-input" id="si-n-stanze" type="number" placeholder="Es. 3"></div>
+      <div class="f-row"><label class="f-label">Distanza split 1 / unità esterna <span class="req">*</span></label><input class="f-input" id="si-dist1" placeholder="Es. 5 mt"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Distanza split 2 / unità esterna</label><input class="f-input" id="si-dist2" placeholder="Es. 8 mt (se presente)"></div>
+      <div class="f-row"><label class="f-label">Distanza split 3 / unità esterna</label><input class="f-input" id="si-dist3" placeholder="Es. 12 mt (se presente)"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Misure alloggiamento unità esterna <span class="req">*</span></label><input class="f-input" id="si-mis-est" placeholder="Es. 80x30cm terrazzo"></div>
+      <div class="f-row"><label class="f-label">Metri da terra unità esterna <span class="req">*</span></label><input class="f-input" id="si-mt-terra" placeholder="Es. 8 mt (se a parete)"></div>
+    </div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Linea vita sul tetto <span class="req">*</span></label>
+        <select class="f-select" id="si-lv-clima"><option value="">—</option><option>Sì</option><option>No</option><option>Non applicabile</option></select>
+      </div>
+      <div class="f-row"><label class="f-label">Necessità cestello <span class="req">*</span></label>
+        <select class="f-select" id="si-cestello-cl"><option value="">—</option><option>No</option><option>Sì</option></select>
+      </div>
+    </div>
+    <div class="scheda-section-title">📎 Documenti</div>
+    <div class="scheda-docs-note">Foto: ogni split interno • unità esterna • muro da forare (interno ed esterno)</div>`
+};
+
+// Mappa prodotto → scheda
+const SCHEDA_MAP = {
+  fv:         { key: 'fv',                title: 'Migliora Solare — Residenziale' },
+  fv_pro:     { key: 'fv_pro',            title: 'Migliora Solare Pro — Business' },
+  illumina:   { key: 'illumina',          title: 'Migliora Illumina — Relamping' },
+  efficienza: { key: 'efficienza_split',  title: 'Migliora Efficientamento' },
+};
+
 function onProdChange() {
   const val = document.getElementById('f-prod').value;
   const hint = document.getElementById('conf-hint');
-  if (!hint) return;
-  const url = CONFIGURATORI[val];
-  if (url) {
-    hint.textContent = '→ Dopo il salvataggio verrà aperto: ' + (PROD[val]||val);
-    hint.style.display = 'block';
-  } else if (val && val in CONFIGURATORI) {
-    hint.textContent = 'Configuratore in arrivo per ' + (PROD[val]||val);
-    hint.style.display = 'block';
-  } else {
-    hint.style.display = 'none';
+  const schedaDiv = document.getElementById('scheda-inline');
+  const schedaContent = document.getElementById('scheda-inline-content');
+  const schedaTitle = document.getElementById('scheda-inline-title');
+
+  // Hint configuratore
+  if (hint) {
+    const url = CONFIGURATORI[val];
+    if (url) {
+      hint.textContent = '→ Dopo il salvataggio verrà aperto: ' + (PROD[val]||val);
+      hint.style.display = 'block';
+    } else if (val && val in CONFIGURATORI) {
+      hint.textContent = 'Configuratore in arrivo per ' + (PROD[val]||val);
+      hint.style.display = 'block';
+    } else {
+      hint.style.display = 'none';
+    }
   }
+
+  // Scheda tecnica inline
+  if (!schedaDiv) return;
+
+  if (val === 'fv') {
+    schedaTitle.textContent = '📋 Scheda tecnica — Migliora Solare Residenziale (obbligatoria)';
+    schedaContent.innerHTML = SCHEDE_HTML.fv;
+    schedaDiv.style.display = 'block';
+  } else if (val === 'fv_pro') {
+    schedaTitle.textContent = '📋 Scheda tecnica — Migliora Solare Pro Business (obbligatoria)';
+    schedaContent.innerHTML = ''; // usa il modal separato per fv_pro (più complessa)
+    schedaDiv.style.display = 'none';
+    // Apri il modal scheda tecnica esteso
+    setTimeout(() => {
+      if (document.getElementById('scheda-fv-modal')) {
+        document.getElementById('scheda-fv-modal').classList.add('open');
+      }
+    }, 300);
+  } else if (val === 'illumina') {
+    schedaTitle.textContent = '📋 Scheda tecnica — Migliora Illumina Relamping (obbligatoria)';
+    schedaContent.innerHTML = SCHEDE_HTML.illumina;
+    schedaDiv.style.display = 'block';
+  } else if (val === 'efficienza') {
+    schedaTitle.textContent = '📋 Scheda tecnica — Migliora Efficientamento (obbligatoria)';
+    schedaContent.innerHTML = `
+      <div class="f-row" style="margin-bottom:12px;">
+        <label class="f-label">Tipo intervento <span class="req">*</span></label>
+        <div class="radio-row">
+          <label><input type="radio" name="si-eff-tipo" value="caldaia" onchange="mostraSchedaEfficienza(this.value)"> Caldaia</label>
+          <label><input type="radio" name="si-eff-tipo" value="clima" onchange="mostraSchedaEfficienza(this.value)"> Climatizzatore</label>
+          <label><input type="radio" name="si-eff-tipo" value="entrambi" onchange="mostraSchedaEfficienza(this.value)"> Entrambi</label>
+        </div>
+      </div>
+      <div id="scheda-efficienza-detail"></div>`;
+    schedaDiv.style.display = 'block';
+  } else {
+    schedaDiv.style.display = 'none';
+    schedaContent.innerHTML = '';
+  }
+}
+
+function mostraSchedaEfficienza(tipo) {
+  const det = document.getElementById('scheda-efficienza-detail');
+  if (!det) return;
+  if (tipo === 'caldaia') det.innerHTML = SCHEDE_HTML.efficienza_caldaia;
+  else if (tipo === 'clima') det.innerHTML = SCHEDE_HTML.efficienza_clima;
+  else if (tipo === 'entrambi') det.innerHTML = SCHEDE_HTML.efficienza_caldaia + '<div style="height:1px;background:var(--border);margin:16px 0;"></div>' + SCHEDE_HTML.efficienza_clima;
 }
 
 // ── BOUNCE ────────────────────────────────────────────────────────────────────

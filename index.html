@@ -2039,6 +2039,10 @@ async function salvaSchedaFV() {
   const deal = deals.find(x => x.id === schedaFVDealId);
 
   // Aggiorna la trattativa con i dati della scheda
+  if (!schedaFVDealId || schedaFVDealId === 'null') {
+    alert('Errore: nessuna trattativa collegata. Salva prima la trattativa, poi apri la scheda tecnica dal pannello dettaglio.');
+    return;
+  }
   if (schedaFVDealId) {
     await updateDeal(schedaFVDealId, {
       note: (schedaNota ? '[SCHEDA FV PRO] ' + schedaNota : ''),
@@ -2090,6 +2094,7 @@ function g(id) { const el = document.getElementById(id); return el ? el.value.tr
 function gr(name) { const el = document.querySelector(`input[name="${name}"]:checked`); return el ? el.value : ''; }
 
 function validaSchedaInline(prodotto) {
+  if (prodotto === 'fv_pro') return null; // scheda separata dopo salvataggio
   const mancanti = [];
 
   if (prodotto === 'fv') {
@@ -2178,6 +2183,7 @@ function validaSchedaInline(prodotto) {
 }
 
 function raccogliSchedaInline(prodotto) {
+  if (prodotto === 'fv_pro') return null; // scheda separata
   if (prodotto === 'fv') {
     return {
       referente: g('si-referente'), tel: g('si-tel'), email: g('si-email'),
@@ -2645,15 +2651,10 @@ function onProdChange() {
     schedaContent.innerHTML = SCHEDE_HTML.fv;
     schedaDiv.style.display = 'block';
   } else if (val === 'fv_pro') {
-    schedaTitle.textContent = '📋 Scheda tecnica — Migliora Solare Pro Business (obbligatoria)';
-    schedaContent.innerHTML = ''; // usa il modal separato per fv_pro (più complessa)
-    schedaDiv.style.display = 'none';
-    // Apri il modal scheda tecnica esteso
-    setTimeout(() => {
-      if (document.getElementById('scheda-fv-modal')) {
-        document.getElementById('scheda-fv-modal').classList.add('open');
-      }
-    }, 300);
+    // Per Solare Pro: mostra avviso inline — la scheda si apre dopo il salvataggio della trattativa
+    schedaTitle.textContent = '📋 Scheda tecnica Solare Pro — verrà richiesta dopo il salvataggio';
+    schedaContent.innerHTML = '<div style="font-size:13px;color:var(--text2);padding:8px 0;">Dopo aver salvato la trattativa, clicca sul pulsante <strong>📋 Scheda tecnica</strong> nel pannello dettaglio per compilare la scheda completa.</div>';
+    schedaDiv.style.display = 'block';
   } else if (val === 'illumina') {
     schedaTitle.textContent = '📋 Scheda tecnica — Migliora Illumina Relamping (obbligatoria)';
     schedaContent.innerHTML = SCHEDE_HTML.illumina;

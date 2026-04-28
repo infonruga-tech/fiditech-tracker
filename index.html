@@ -477,7 +477,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <!-- MODAL SCHEDA TECNICA SOLARE PRO -->
 <div class="overlay" id="scheda-fv-modal">
   <div class="modal" style="max-width:680px;max-height:92vh;overflow-y:auto;">
-    <div class="modal-title" style="color:var(--amber2);">☀ Scheda Tecnica — Migliora Solare Pro</div>
+    <div class="modal-title" style="color:var(--text);font-size:17px;border-bottom:2px solid var(--amber);padding-bottom:10px;margin-bottom:16px;">☀ Scheda Tecnica — Migliora Solare Pro</div>
     <p style="font-size:12px;color:var(--text3);margin-bottom:16px;">Tutti i campi contrassegnati con <span style="color:var(--red2)">*</span> sono obbligatori per procedere.</p>
 
     <!-- ANAGRAFICA SEDE LEGALE -->
@@ -493,7 +493,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
 
     <!-- REFERENTE -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Referente cliente</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:16px;padding:6px 10px;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;">Referente cliente</div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Nome e Cognome referente <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-referente" placeholder="Es. Mario Rossi"></div>
       <div class="f-row"><label class="f-label">Telefono / Cellulare <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-tel" placeholder="Es. 348 1234567" type="tel"></div>
@@ -501,17 +501,22 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="f-row"><label class="f-label">Email referente <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-email" placeholder="referente@azienda.it" type="email"></div>
 
     <!-- INDIRIZZO INSTALLAZIONE -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Indirizzo installazione (se diverso dalla sede)</div>
-    <div class="f-row"><label class="f-label">Via / Piazza e Numero civico</label><input class="f-input" id="sc-via-inst" placeholder="Es. Via Industriale 42"></div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">CAP</label><input class="f-input" id="sc-cap-inst" placeholder="20100" maxlength="5"></div>
-      <div class="f-row"><label class="f-label">Città</label><input class="f-input" id="sc-citta-inst" placeholder="Es. Milano"></div>
-      <div class="f-row"><label class="f-label">Provincia</label><input class="f-input" id="sc-prov-inst" placeholder="MI" maxlength="2"></div>
+    <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text2);cursor:pointer;margin:14px 0 8px;padding:8px 10px;background:var(--bg4);border-radius:var(--r);border:1px solid var(--border)">
+      <input type="checkbox" id="sc-inst-diverso" onchange="toggleInstDiv()" style="width:15px;height:15px;accent-color:var(--amber2);cursor:pointer;">
+      <span>L'indirizzo di installazione è <strong>diverso</strong> dalla sede legale indicata sopra</span>
+    </label>
+    <div id="sc-inst-detail" style="display:none;">
+      <div class="f-row"><label class="f-label">Via / Piazza e Numero civico <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-via-inst" placeholder="Es. Via Industriale 42"></div>
+      <div class="f-grid">
+        <div class="f-row"><label class="f-label">CAP <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-cap-inst" placeholder="20100" maxlength="5"></div>
+        <div class="f-row"><label class="f-label">Città <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-citta-inst" placeholder="Es. Milano"></div>
+        <div class="f-row"><label class="f-label">Provincia <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-prov-inst" placeholder="MI" maxlength="2"></div>
+      </div>
+      <div class="f-row"><label class="f-label">Localizzatore Google Maps</label><input class="f-input" id="sc-gmaps" placeholder="Incolla il link Google Maps del sito di installazione"></div>
     </div>
-    <div class="f-row"><label class="f-label">Localizzatore Google Maps</label><input class="f-input" id="sc-gmaps" placeholder="Incolla il link Google Maps del sito di installazione"></div>
 
     <!-- IMPIANTO ESISTENTE -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Impianto fotovoltaico esistente</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:16px;padding:6px 10px;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;">Impianto fotovoltaico esistente</div>
     <div class="f-row">
       <label class="f-label">Il cliente ha già un impianto fotovoltaico? <span style="color:var(--red2)">*</span></label>
       <div style="display:flex;gap:16px;margin-top:6px;">
@@ -521,7 +526,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
 
     <!-- IMPIANTO PROPOSTO -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Impianto proposto</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:16px;padding:6px 10px;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;">Impianto proposto</div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Potenza impianto kWp <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-kwp" placeholder="Es. 30" type="number" min="10"></div>
       <div class="f-row"><label class="f-label">Accumulo kWh</label><input class="f-input" id="sc-kwh" placeholder="Es. 15" type="number" min="0"></div>
@@ -533,7 +538,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="f-row"><label class="f-label">Altro (accessori, richieste speciali)</label><input class="f-input" id="sc-altro-imp" placeholder="Es. ottimizzatori, monitoraggio avanzato..."></div>
 
     <!-- SCHEDA TECNICA EDIFICIO -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Caratteristiche edificio</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:16px;padding:6px 10px;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;">Caratteristiche edificio</div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Tipologia edificio <span style="color:var(--red2)">*</span></label>
         <select class="f-select" id="sc-tipo-edificio">
@@ -556,14 +561,6 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       </div>
     </div>
     <div class="f-grid">
-      <div class="f-row"><label class="f-label">Soluzione proposta <span style="color:var(--red2)">*</span></label>
-        <select class="f-select" id="sc-soluzione">
-          <option value="">— seleziona —</option>
-          <option>Acquisto</option>
-          <option>Noleggio operativo</option>
-          <option>Altro</option>
-        </select>
-      </div>
       <div class="f-row"><label class="f-label">Immobile di proprietà <span style="color:var(--red2)">*</span></label>
         <select class="f-select" id="sc-proprieta">
           <option value="">— seleziona —</option>
@@ -590,7 +587,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
 
     <!-- CARATTERISTICHE TETTO -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Caratteristiche tetto / copertura</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:16px;padding:6px 10px;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;">Caratteristiche tetto / copertura</div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Accesso al tetto <span style="color:var(--red2)">*</span></label>
         <select class="f-select" id="sc-accesso-tetto">
@@ -653,7 +650,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="f-row"><label class="f-label">Canne fumarie / ostacoli sul tetto</label><input class="f-input" id="sc-canne" placeholder="Es. 2 canne fumarie lato nord, 1 canna fumaria centrale"></div>
 
     <!-- DATI ELETTRICI -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Dati elettrici e consumi</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:16px;padding:6px 10px;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;">Dati elettrici e consumi</div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Numero contatori <span style="color:var(--red2)">*</span></label><input class="f-input" id="sc-n-contatori" placeholder="Es. 3" type="number" min="1"></div>
       <div class="f-row"><label class="f-label">Posizione contatori</label><input class="f-input" id="sc-pos-contatori" placeholder="Es. ingresso principale, magazzino"></div>
@@ -695,7 +692,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     <div class="f-row"><label class="f-label">Note aggiuntive</label><textarea class="f-textarea" id="sc-note" rows="3" placeholder="Qualsiasi informazione utile non coperta dai campi precedenti..."></textarea></div>
 
     <!-- BONUS E PAGAMENTO -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Bonus e modalità di pagamento</div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:16px;padding:6px 10px;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;">Bonus e modalità di pagamento</div>
     <div class="f-row"><label class="f-label">Il cliente vuole verificare accesso a bonus / incentivi?</label>
       <select class="f-select" id="sc-bonus-interest" onchange="onBonusInterestChange()">
         <option value="">— seleziona —</option>
@@ -731,7 +728,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
 
     <!-- UPLOAD DOCUMENTI OBBLIGATORI -->
-    <div style="font-size:10px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.07em;margin-bottom:8px;margin-top:14px;">Documenti allegati <span style="color:var(--red2)">*</span></div>
+    <div style="font-size:11px;font-family:var(--mono);color:var(--text);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;margin-top:16px;padding:6px 10px;background:var(--amber-bg);border-left:3px solid var(--amber);border-radius:0 var(--r) var(--r) 0;">Documenti allegati <span style="color:var(--red2)">*</span></div>
     <div style="background:var(--bg3);border:1px solid var(--amber-border);border-radius:var(--r);padding:12px;margin-bottom:10px;font-size:12px;color:var(--amber2);">
       ⚠ Obbligatori: bolletta elettrica + foto edificio (tutti i lati) + locale contatore.<br>Facoltativi: cabina elettrica, planimetria, altri documenti.
     </div>
@@ -768,7 +765,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div class="sc-dropzone" onclick="document.getElementById('sc-file-cabina').click()">
         📷 Foto cabina elettrica
       </div>
-      <input type="file" id="sc-file-cabina" accept=".jpg,.jpeg,.png,.heic" multiple style="display:none" onchange="handleSchedaFile('cabina',this)">
+      <input type="file" id="sc-file-cabina" accept=".jpg,.jpeg,.png,.heic,.pdf" multiple style="display:none" onchange="handleSchedaFile('cabina',this)">
       <div id="sc-cabina-names" style="font-size:12px;color:var(--green2);margin-top:4px;"></div>
     </div>
     <div style="margin-bottom:14px;">
@@ -1831,7 +1828,7 @@ function apriSchedaFV(dealId) {
     const el = document.getElementById(id);
     if (el) el.value = '';
   });
-  ['sc-tipo-edificio','sc-area','sc-soluzione','sc-proprieta','sc-accesso-tetto',
+  ['sc-tipo-edificio','sc-area','sc-proprieta','sc-accesso-tetto',
    'sc-tipo-tetto','sc-copertura','sc-soletta','sc-lucernari','sc-lineavita',
    'sc-cpi','sc-bt-mt','sc-wifi','sc-paesaggistica'].forEach(id => {
     const el = document.getElementById(id);
@@ -1848,6 +1845,11 @@ function apriSchedaFV(dealId) {
 
 function chiudiSchedaFV() {
   document.getElementById('scheda-fv-modal').classList.remove('open');
+}
+
+function toggleInstDiv() {
+  const checked = document.getElementById('sc-inst-diverso').checked;
+  document.getElementById('sc-inst-detail').style.display = checked ? 'block' : 'none';
 }
 
 function handleSchedaFile(tipo, input) {
@@ -1876,7 +1878,8 @@ function getSchedaFVData() {
     referente:       document.getElementById('sc-referente').value.trim(),
     tel:             document.getElementById('sc-tel').value.trim(),
     email:           document.getElementById('sc-email').value.trim(),
-    via_inst:        document.getElementById('sc-via-inst').value.trim(),
+    inst_diverso:    document.getElementById('sc-inst-diverso')?.checked || false,
+    via_inst:        document.getElementById('sc-inst-diverso')?.checked ? document.getElementById('sc-via-inst').value.trim() : '',
     cap_inst:        document.getElementById('sc-cap-inst').value.trim(),
     citta_inst:      document.getElementById('sc-citta-inst').value.trim(),
     prov_inst:       document.getElementById('sc-prov-inst').value.trim(),
@@ -1889,7 +1892,6 @@ function getSchedaFVData() {
     altro_imp:       document.getElementById('sc-altro-imp').value.trim(),
     tipo_edificio:   document.getElementById('sc-tipo-edificio').value,
     area:            document.getElementById('sc-area').value,
-    soluzione:       document.getElementById('sc-soluzione').value,
     proprieta:       document.getElementById('sc-proprieta').value,
     sup_int:         document.getElementById('sc-sup-int').value,
     sup_ext:         document.getElementById('sc-sup-ext').value,
@@ -1925,39 +1927,60 @@ function getSchedaFVData() {
 }
 
 function validaSchedaFV(data) {
+  // Validazione basata su ID elementi DOM — evidenzia in rosso i campi mancanti
   const campiObbligatori = [
-    ['via_sede', 'Via sede legale'],
-    ['nciv_sede', 'N. Civico sede legale'],
-    ['cap_sede', 'CAP sede legale'],
-    ['citta_sede', 'Città sede legale'],
-    ['prov_sede', 'Provincia sede legale'],
-    ['referente', 'Nome referente'],
-    ['tel', 'Telefono referente'],
-    ['email', 'Email referente'],
-    ['kwp', 'Potenza impianto kWp'],
-    ['tipo_edificio', 'Tipologia edificio'],
-    ['area', 'Area destinata'],
-    ['soluzione', 'Soluzione proposta'],
-    ['proprieta', 'Immobile di proprietà'],
-    ['altezza', 'Altezza edificio'],
-    ['cpi', 'Certificato prevenzione incendi'],
-    ['accesso_tetto', 'Accesso al tetto'],
-    ['tipo_tetto', 'Tipologia tetto'],
-    ['copertura', 'Tipo copertura'],
-    ['soletta', 'Tipo soletta'],
-    ['lucernari', 'Lucernari / traslucidi'],
-    ['lineavita', 'Linea vita'],
-    ['n_contatori', 'Numero contatori'],
-    ['pot_kw', 'Potenza utenza kW'],
-    ['bt_mt', 'Tipo fornitura BT/MT'],
-    ['f1', 'Consumo annuo F1'],
-    ['costo_kwh', 'Costo energia €/kWh'],
-    ['wifi', 'Wi-Fi locale contatore'],
-    ['paesaggistica', 'Pratica paesaggistica'],
+    ['sc-via-sede', 'Via sede legale'],
+    ['sc-nciv-sede', 'N. Civico sede legale'],
+    ['sc-cap-sede', 'CAP sede legale'],
+    ['sc-citta-sede', 'Città sede legale'],
+    ['sc-prov-sede', 'Provincia sede legale'],
+    ['sc-referente', 'Nome referente'],
+    ['sc-tel', 'Telefono referente'],
+    ['sc-email', 'Email referente'],
+    ['sc-kwp', 'Potenza impianto kWp'],
+    ['sc-tipo-edificio', 'Tipologia edificio'],
+    ['sc-area', 'Area destinata'],
+    ['sc-proprieta', 'Immobile di proprietà'],
+    ['sc-altezza', 'Altezza edificio'],
+    ['sc-cpi', 'CPI'],
+    ['sc-accesso-tetto', 'Accesso al tetto'],
+    ['sc-tipo-tetto', 'Tipologia tetto'],
+    ['sc-copertura', 'Tipo copertura'],
+    ['sc-soletta', 'Tipo soletta'],
+    ['sc-lucernari', 'Lucernari'],
+    ['sc-lineavita', 'Linea vita'],
+    ['sc-n-contatori', 'N. contatori'],
+    ['sc-pot-kw', 'Potenza utenza kW'],
+    ['sc-bt-mt', 'BT/MT'],
+    ['sc-f1', 'Consumo F1 kWh/anno'],
+    ['sc-costo-kwh', 'Costo €/kWh'],
+    ['sc-wifi', 'Wi-Fi contatore'],
+    ['sc-paesaggistica', 'Pratica paesaggistica'],
   ];
-  const mancanti = campiObbligatori.filter(([k]) => !data[k]).map(([,l]) => l);
+
+  const mancanti = [];
+  // Reset stili precedenti
+  document.querySelectorAll('[style*="border-color: var(--red2)"]').forEach(el => {
+    el.style.borderColor = '';
+  });
+
+  campiObbligatori.forEach(([id, label]) => {
+    const el = document.getElementById(id);
+    if (!el || !el.value.trim()) {
+      mancanti.push(label);
+      if (el) {
+        el.style.borderColor = 'var(--red2)';
+        el.style.borderWidth = '2px';
+        // Scrolla al primo campo mancante
+        if (mancanti.length === 1) {
+          setTimeout(() => el.scrollIntoView({behavior:'smooth', block:'center'}), 100);
+        }
+      }
+    }
+  });
+
   if (!schedaFVFiles.bolletta) mancanti.push('Bolletta elettrica');
-  if (!schedaFVFiles.foto.length) mancanti.push('Foto edificio');
+  if (!schedaFVFiles.foto.length) mancanti.push('Foto edificio (tutti i lati)');
   if (!schedaFVFiles.contatore.length) mancanti.push('Foto locale contatore');
   return mancanti;
 }
@@ -1995,11 +2018,14 @@ async function salvaSchedaFV() {
   const mancanti = validaSchedaFV(data);
   if (mancanti.length) {
     const errEl = document.getElementById('sc-error');
-    errEl.innerHTML = '<strong>Campi obbligatori mancanti:</strong><br>' + mancanti.join(', ');
+    errEl.innerHTML = '<strong>⚠ Campi obbligatori mancanti (' + mancanti.length + '):</strong><br><br>' +
+      mancanti.map(m => '• ' + m).join('<br>');
     errEl.style.display = 'block';
+    errEl.style.cssText += ';background:var(--red-bg);border:1.5px solid var(--red2);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--red2);margin-bottom:14px;line-height:1.6;';
     errEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     return;
   }
+  document.getElementById('sc-error').style.display = 'none';
   document.getElementById('sc-error').style.display = 'none';
 
   // Salva i dati tecnici come nota estesa sulla trattativa

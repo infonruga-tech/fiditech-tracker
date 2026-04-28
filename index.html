@@ -1586,6 +1586,42 @@ async function saveDeal() {
     const newId = Array.isArray(created) ? created[0]?.id : created?.id;
     await insertLog({agente_id: agenteId, trattativa_id: newId||null, tipo: 'Nuova trattativa', nota: `${data.client_name} — ${PROD[data.prodotto]}`});
     await notifyDVNewDeal({...data, id: newId});
+
+    // Per Solare Pro: apri subito la scheda tecnica invece del configuratore
+    if (data.prodotto === 'fv_pro') {
+      closeDealModal();
+      await loadData();
+      // Apri scheda tecnica con l'ID della nuova trattativa
+      schedaFVDealId = newId;
+      schedaFVFiles = { bolletta: null, foto: [], contatore: [], cabina: [], altri: [] };
+      // Reset form scheda
+      ['sc-referente','sc-tel','sc-email','sc-via-inst','sc-cap-inst','sc-citta-inst',
+       'sc-prov-inst','sc-gmaps','sc-kwp','sc-kwh','sc-wallbox-n','sc-wallbox-kw',
+       'sc-altro-imp','sc-altezza','sc-n-contatori','sc-pos-contatori','sc-pot-kw',
+       'sc-f1','sc-f2','sc-f3','sc-costo-kwh','sc-canne','sc-note',
+       'sc-via-sede','sc-nciv-sede','sc-cap-sede','sc-citta-sede','sc-prov-sede'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.value = '';
+      });
+      ['sc-tipo-edificio','sc-area','sc-proprieta','sc-accesso-tetto',
+       'sc-tipo-tetto','sc-copertura','sc-soletta','sc-lucernari','sc-lineavita',
+       'sc-cpi','sc-bt-mt','sc-wifi','sc-paesaggistica'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.selectedIndex = 0;
+      });
+      if (document.getElementById('sc-inst-diverso')) {
+        document.getElementById('sc-inst-diverso').checked = false;
+        document.getElementById('sc-inst-detail').style.display = 'none';
+      }
+      ['sc-bolletta-name','sc-foto-names','sc-contatore-names','sc-cabina-names','sc-altri-names'].forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.textContent = '';
+      });
+      document.getElementById('sc-error').style.display = 'none';
+      document.getElementById('scheda-fv-modal').classList.add('open');
+      return;
+    }
+
     const confUrl = CONFIGURATORI[data.prodotto];
     if (confUrl) {
       const params = new URLSearchParams({

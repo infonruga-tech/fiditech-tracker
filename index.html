@@ -1409,6 +1409,8 @@ function openDetail(id) {
     ${ME.ruolo==='direttore'?`<button class="btn btn-sm" style="background:var(--orange-bg);border-color:rgba(160,96,48,.3);color:var(--orange2)" onclick="openBounceModal('${d.id}')">↩ Rimbalza</button>`:''}
     ${ME.ruolo==='direttore'?`<button class="btn btn-sm" style="background:var(--red-bg);border-color:var(--red2);color:var(--red2)" onclick="deleteDeal('${d.id}')">🗑 Elimina</button>`:''}
     ${d.prodotto==='fv_pro'?`<button class="btn btn-sm" style="background:var(--amber-bg);border-color:var(--amber-border);color:var(--amber2)" onclick="apriSchedaFV('${d.id}')">📋 Scheda tecnica</button>`:''}
+    ${d.prodotto==='fv_pro'&&ME.ruolo==='direttore'?`<button class="btn btn-sm" style="background:#E6F1FB;border-color:#B5D4F4;color:#185FA5" onclick="inviaLinkTecnici('${d.id}')">📤 Invia link ai tecnici</button>`:''}
+    ${d.prodotto==='fv_pro'&&ME.ruolo==='direttore'?`<button class="btn btn-sm" style="background:#EAF3DE;border-color:#C0DD97;color:#2D7A4A" onclick="apriComposizioneOfferta('${d.id}')">📄 Componi offerta</button>`:''}
   ` : '<span style="font-size:12px;color:var(--text3)">Solo visualizzazione</span>';
   const panel = document.getElementById('detail');
   panel.classList.add('open');
@@ -1443,6 +1445,230 @@ function genAI(d) {
 }
 
 function closeDetail() { document.getElementById('detail').classList.remove('open'); }
+
+// ════════════════════════════════════════════════════════
+// PORTALE TECNICI — Genera token e invia link a Finengine e MB
+// ════════════════════════════════════════════════════════
+function generaToken() {
+  return Math.random().toString(36).substring(2,10) + Math.random().toString(36).substring(2,10);
+}
+
+async function inviaLinkTecnici(dealId) {
+  const d = deals.find(x => x.id === dealId);
+  if (!d) return;
+
+  if (!confirm(`Inviare i link del portale tecnici a Finengine e MB per ${d.client_name}?`)) return;
+
+  const btn = event.currentTarget;
+  btn.textContent = '⏳ Invio in corso...';
+  btn.disabled = true;
+
+  try {
+    // Controlla se esiste già un contributo per questa trattativa
+    const existing = await sbFetch(`contributi_offerta?trattativa_id=eq.${dealId}&select=*`);
+    let contributo = existing && existing.length > 0 ? existing[0] : null;
+
+    let tokenFin, tokenMB;
+
+    if (!contributo) {
+      // Crea nuovo record con token univoci
+      tokenFin = generaToken();
+      tokenMB = generaToken();
+      const created = await sbFetch('contributi_offerta', {
+        method: 'POST',
+        body: JSON.stringify({
+          trattativa_id: dealId,
+          token_finengine: tokenFin,
+          token_mb: tokenMB,
+        })
+      });
+      contributo = Array.isArray(created) ? created[0] : created;
+    } else {
+      tokenFin = contributo.token_finengine || generaToken();
+      tokenMB = contributo.token_mb || generaToken();
+      // Aggiorna i token se mancano
+      if (!contributo.token_finengine || !contributo.token_mb) {
+        await sbFetch(`contributi_offerta?id=eq.${contributo.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ token_finengine: tokenFin, token_mb: tokenMB })
+        });
+      }
+    }
+
+    const scheda = d.scheda_fv_pro ? JSON.parse(d.scheda_fv_pro) : {};
+    const codice = d.codice_offerta || '—';
+    const linkFin = `https://ruganicola.it/portale-tecnici/?token=${tokenFin}&ruolo=finengine`;
+    const linkMB = `https://ruganicola.it/portale-tecnici/?token=${tokenMB}&ruolo=mb`;
+
+    // Email a Finengine
+    await sendEmail(
+      'emilianomilan73@gmail.com',
+      'Finengine Srl',
+      `[Portale Tecnici] Nuova richiesta progettazione — ${d.client_name} — ${codice}`,
+      `<div style="font-family:Arial,sans-serif;max-width:580px">
+        <div style="background:#1A1614;padding:12px 18px;margin-bottom:16px">
+          <span style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fff">migli</span>
+          <span style="display:inline-block;width:14px;height:14px;background:#C0392B;border-radius:50%;vertical-align:middle;margin:0 1px"></span>
+          <span style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#C0392B">ra</span>
+          <span style="font-size:11px;color:#9C9490;margin-left:8px">Portale Tecnici — Solare Pro</span>
+        </div>
+        <h2 style="color:#1A1614;margin-bottom:12px">Nuova richiesta progettazione</h2>
+        <p style="font-size:13px;color:#5C534D;margin-bottom:16px">È arrivata una nuova richiesta di preventivo Solare Pro che richiede la tua valutazione tecnica.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px">
+          <tr><td style="padding:6px 0;color:#666;width:40%">Cliente</td><td style="padding:6px 0"><strong>${d.client_name}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#666">P.IVA</td><td style="padding:6px 0">${d.piva||'—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#666">Indirizzo installazione</td><td style="padding:6px 0">${scheda.inst_diverso ? (scheda.via_inst||'')+' '+(scheda.citta_inst||'') : (scheda.citta_sede||'—')}</td></tr>
+          <tr><td style="padding:6px 0;color:#666">kWp stimati</td><td style="padding:6px 0"><strong>${scheda.kwp||'—'} kWp</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#666">Tipo edificio</td><td style="padding:6px 0">${scheda.tipo_edificio||'—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#666">Codice offerta</td><td style="padding:6px 0"><strong style="color:#C0392B">${codice}</strong></td></tr>
+        </table>
+        <div style="text-align:center;margin:24px 0">
+          <a href="${linkFin}" style="background:#1A3C6B;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block">
+            Accedi al portale e inserisci i costi →
+          </a>
+        </div>
+        <p style="font-size:11px;color:#9C9490;margin-top:16px">Il link è riservato a Finengine Srl. Ti preghiamo di inserire i dati entro 48 ore lavorative dalla ricezione di questa email.</p>
+        <hr style="margin:16px 0;border:none;border-top:1px solid #E2DDD8">
+        <p style="font-size:11px;color:#9C9490">Migliora — Fiditech Srl · nicola@ruganicola.it · 347 0197547</p>
+      </div>`
+    );
+
+    // Email a MB
+    await sendEmail(
+      'info@mbenergierinnovabili.it',
+      'MB Energie Rinnovabili',
+      `[Portale Tecnici] Nuova richiesta offerta impianto — ${d.client_name} — ${codice}`,
+      `<div style="font-family:Arial,sans-serif;max-width:580px">
+        <div style="background:#1A1614;padding:12px 18px;margin-bottom:16px">
+          <span style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#fff">migli</span>
+          <span style="display:inline-block;width:14px;height:14px;background:#C0392B;border-radius:50%;vertical-align:middle;margin:0 1px"></span>
+          <span style="font-family:Georgia,serif;font-size:20px;font-weight:700;color:#C0392B">ra</span>
+          <span style="font-size:11px;color:#9C9490;margin-left:8px">Portale Tecnici — Solare Pro</span>
+        </div>
+        <h2 style="color:#1A1614;margin-bottom:12px">Nuova richiesta offerta impianto</h2>
+        <p style="font-size:13px;color:#5C534D;margin-bottom:16px">È arrivata una nuova richiesta di preventivo Solare Pro che richiede la tua offerta per fornitura e installazione.</p>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;margin-bottom:16px">
+          <tr><td style="padding:6px 0;color:#666;width:40%">Cliente</td><td style="padding:6px 0"><strong>${d.client_name}</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#666">P.IVA</td><td style="padding:6px 0">${d.piva||'—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#666">Indirizzo installazione</td><td style="padding:6px 0">${scheda.inst_diverso ? (scheda.via_inst||'')+' '+(scheda.citta_inst||'') : (scheda.citta_sede||'—')}</td></tr>
+          <tr><td style="padding:6px 0;color:#666">kWp stimati</td><td style="padding:6px 0"><strong>${scheda.kwp||'—'} kWp</strong></td></tr>
+          <tr><td style="padding:6px 0;color:#666">Tipo copertura</td><td style="padding:6px 0">${scheda.copertura||'—'}</td></tr>
+          <tr><td style="padding:6px 0;color:#666">Accumulo richiesto</td><td style="padding:6px 0">${scheda.kwh ? scheda.kwh+' kWh' : 'Non richiesto'}</td></tr>
+          <tr><td style="padding:6px 0;color:#666">Codice offerta</td><td style="padding:6px 0"><strong style="color:#C0392B">${codice}</strong></td></tr>
+        </table>
+        <div style="text-align:center;margin:24px 0">
+          <a href="${linkMB}" style="background:#2D7A4A;color:#fff;padding:12px 28px;border-radius:6px;text-decoration:none;font-size:14px;font-weight:600;display:inline-block">
+            Accedi al portale e inserisci l'offerta →
+          </a>
+        </div>
+        <p style="font-size:11px;color:#9C9490;margin-top:16px">Il link è riservato a MB Energie Rinnovabili. Ti preghiamo di inserire i dati entro 48 ore lavorative dalla ricezione di questa email.</p>
+        <hr style="margin:16px 0;border:none;border-top:1px solid #E2DDD8">
+        <p style="font-size:11px;color:#9C9490">Migliora — Fiditech Srl · nicola@ruganicola.it · 347 0197547</p>
+      </div>`
+    );
+
+    // Log attività
+    await insertLog({
+      agente_id: ME.id,
+      trattativa_id: dealId,
+      tipo: 'Link tecnici inviati',
+      nota: `Link portale inviati a Finengine (emilianomilan73@gmail.com) e MB (info@mbenergierinnovabili.it) — rif. ${codice}`
+    });
+
+    btn.textContent = '✅ Link inviati';
+    btn.style.background = '#EAF3DE';
+    btn.style.borderColor = '#C0DD97';
+    btn.style.color = '#2D7A4A';
+
+    setTimeout(() => { btn.textContent = '📤 Invia link ai tecnici'; btn.disabled = false; }, 4000);
+
+    alert(`✅ Link inviati con successo!
+
+Finengine: emilianomilan73@gmail.com
+MB: info@mbenergierinnovabili.it
+
+Entrambi hanno 48 ore lavorative per inserire i dati.`);
+
+  } catch(e) {
+    btn.textContent = '❌ Errore — riprova';
+    btn.disabled = false;
+    console.error('Errore invio link tecnici:', e);
+    alert('Errore durante l\'invio. Controlla la connessione e riprova.');
+  }
+}
+
+// ════════════════════════════════════════════════════════
+// COMPONI OFFERTA — apre template con dati pre-compilati
+// ════════════════════════════════════════════════════════
+async function apriComposizioneOfferta(dealId) {
+  const d = deals.find(x => x.id === dealId);
+  if (!d) return;
+
+  // Carica dati contributo da Supabase
+  const contributi = await sbFetch(`contributi_offerta?trattativa_id=eq.${dealId}&select=*`);
+  const c = contributi && contributi.length > 0 ? contributi[0] : null;
+
+  if (!c || (!c.fin_completato && !c.mb_completato)) {
+    alert('I tecnici non hanno ancora inserito i loro dati. Attendi che Finengine e MB completino il portale.');
+    return;
+  }
+
+  if (!c.fin_completato) {
+    if (!confirm('Finengine non ha ancora completato. Vuoi procedere ugualmente con i soli dati di MB?')) return;
+  }
+  if (!c.mb_completato) {
+    if (!confirm('MB non ha ancora completato. Vuoi procedere ugualmente con i soli dati di Finengine?')) return;
+  }
+
+  // Calcola totale costi base
+  const costiFinengine = (c.fin_costo_progetto||0) + (c.fin_costo_gse||0) + (c.fin_costo_burocrazia||0) + (c.fin_costo_collaudo||0);
+  const costiMB = (c.mb_costo_fornitura||0) + (c.mb_costo_installazione||0) + (c.mb_costo_strutture||0);
+  const costiBase = costiFinengine + costiMB;
+  const acconto = c.fin_acconto_progetto || 0;
+
+  const scheda = d.scheda_fv_pro ? JSON.parse(d.scheda_fv_pro) : {};
+  const prov = scheda.prov_sede || scheda.prov_inst || 'MI';
+
+  // Parametri URL per il template offerta
+  const params = new URLSearchParams({
+    c: d.client_name || '',
+    p: d.piva || '',
+    cod: d.codice_offerta || '',
+    adr: scheda.inst_diverso ? (scheda.via_inst||'') + ' ' + (scheda.citta_inst||'') : (scheda.citta_sede||''),
+    ag: d.agente?.nome || '',
+    kwp: c.mb_kwp_effettivo || c.fin_kwp_definitivo || scheda.kwp || 0,
+    costi: costiBase,
+    prov: prov,
+    acc: acconto,
+    npan: c.mb_n_pannelli || 0,
+    kwh: scheda.costo_kwh || scheda.costo || 0.24,
+    mprod: c.mb_marca_pannelli || '',
+    mmod: c.mb_modello_pannelli || '',
+    mn: c.mb_n_pannelli || '',
+    iprod: c.mb_marca_inverter || '',
+    imod: c.mb_modello_inverter || '',
+    inum: c.mb_n_inverter || '',
+    acc_kwh: c.mb_accumulo_kwh || 0,
+    bat: c.mb_batteria || '',
+  });
+
+  // Apri il template offerta — deve essere in locale
+  const msg = `Per aprire il template offerta:
+
+1. Apri offerta_solare_pro.html nel browser
+2. Oppure aggiungi questo URL manualmente alla barra:
+
+Dati pre-compilati:
+• Costi base: €${costiBase.toLocaleString('it-IT')}
+• kWp: ${c.mb_kwp_effettivo || c.fin_kwp_definitivo || scheda.kwp || '—'}
+• Acconto progetto: €${acconto.toLocaleString('it-IT')}
+• Pannelli: ${c.mb_marca_pannelli||''} ${c.mb_modello_pannelli||''} × ${c.mb_n_pannelli||'—'}
+• Inverter: ${c.mb_marca_inverter||''} ${c.mb_modello_inverter||''}
+
+Inserisci questi valori nella barra in cima al template.`;
+  
+  alert(msg);
+}
 
 async function advanceStage(id) {
   const d = deals.find(x => x.id === id);

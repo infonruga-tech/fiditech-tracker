@@ -423,6 +423,14 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       </div>
     </div>
     <div class="f-row"><label class="f-label">Note / stato attuale</label><textarea class="f-textarea" id="f-notes" placeholder="Cosa e successo nell'ultimo contatto? Quali obiezioni? Prossimo step?"></textarea></div>
+    <div class="f-row" id="convenzione-row" style="display:none">
+      <label class="f-label">Prezzo convenzionato</label>
+      <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);font-size:13px">
+        <input type="checkbox" id="f-convenzione" style="width:16px;height:16px;accent-color:var(--amber2)">
+        <span style="color:var(--amber2);font-weight:500">Cliente con diritto al prezzo convenzionato Fiditech</span>
+      </label>
+      <div style="font-size:11px;color:var(--text3);margin-top:4px">Il configuratore applicherà automaticamente lo sconto e il PDF riporterà "Offerta Riservata — Prezzo Convenzionato"</div>
+    </div>
     <div id="rejection-section" style="display:none;">
       <div class="f-row">
         <label class="f-label">Motivo rifiuto - tag remarketing</label>
@@ -1082,6 +1090,10 @@ function populateAgentSelects() {
     lfAgent.innerHTML = `<option value="${ME.id}">${ME.nome}</option>`;
     lfAgentRow.style.display = 'none';
   }
+  // Checkbox convenzione visibile solo a DV e AM (livello_num >= 3)
+  const isAMOrDV = ME.ruolo === 'direttore' || (ME.livello_num && ME.livello_num >= 3);
+  const convRow = document.getElementById('convenzione-row');
+  if (convRow) convRow.style.display = isAMOrDV ? '' : 'none';
 }
 
 async function loadData() {
@@ -1398,6 +1410,7 @@ function openDetail(id) {
     <div class="df"><div class="df-label">Indirizzo</div><div class="df-val">${d.indirizzo||'—'}</div></div>
     <div class="df" style="grid-column:1/-1"><div class="df-label">Note</div><div class="df-val" style="font-weight:400;font-size:13px;line-height:1.6">${d.note||'—'}</div></div>
     ${d.rejection_tags ? '<div class="df" style="grid-column:1/-1"><div class="df-label">Motivi rifiuto</div><div class="df-val" style="font-size:12px;color:var(--red2)">'+d.rejection_tags.split(',').join(' · ')+(d.rejection_note ? ' — '+d.rejection_note : '')+'</div></div>' : ''}
+    ${d.convenzione ? '<div class="df" style="grid-column:1/-1"><div class="df-label">Prezzo convenzionato</div><div class="df-val"><span style="background:var(--amber-bg);color:var(--amber2);padding:2px 10px;border-radius:20px;font-size:12px;font-weight:600">⭐ Prezzo convenzionato Fiditech</span></div></div>' : ''}
   `;
   document.getElementById('d-ai').innerHTML = genAI(d);
   const canEdit = ME.ruolo === 'direttore' || d.agente_id === ME.id;
@@ -1752,6 +1765,8 @@ function editDeal(id) {
   document.getElementById('f-val').value = d.valore_stimato||'';
   document.getElementById('f-stage').value = d.stage;
   document.getElementById('f-zone').value = d.zona_cliente||'';
+  const convEl = document.getElementById('f-convenzione');
+  if (convEl) convEl.checked = d.convenzione || false;
   document.getElementById('f-prob').value = d.probabilita;
   document.getElementById('f-next').value = d.next_followup||'';
   document.getElementById('f-notes').value = d.note||'';
@@ -1797,6 +1812,9 @@ async function saveDeal() {
     rejection_tags: rejTags || null,
     rejection_note: document.getElementById('f-rejection-note')?.value?.trim() || null,
     scheda_inline: schedaInlineData ? JSON.stringify(schedaInlineData) : null,
+    convenzione: document.getElementById('convenzione-row')?.style.display !== 'none' 
+      ? (document.getElementById('f-convenzione')?.checked || false) 
+      : false,
   };
   // Auto-imposta fase e data se c'è scheda tecnica
   if (schedaInlineData) {
@@ -1870,6 +1888,7 @@ async function saveDeal() {
         agente_email: agenteEmail,
         id: newId||'',
         trattativa_id: newId||'',
+        convenzione: data.convenzione ? 'true' : 'false',
         tipo: data.prodotto === 'efficienza' ? (schedaInline?.tipo || 'caldaia') : '',
       });
       closeDealModal(); await loadData();

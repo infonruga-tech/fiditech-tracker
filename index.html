@@ -1003,20 +1003,24 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pwd = document.getElementById('login-pwd').value;
   document.getElementById('login-err').style.display = 'none';
-
-  // Password temporanea: "fiditech2025" per tutti (cambia da Supabase)
-  // In produzione: aggiungi colonna password_hash o usa Supabase Auth
-  const PASSWORD_TEMP = 'fiditech2025';
-
   try {
+    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json','apikey':SUPA_KEY},
+      body: JSON.stringify({email, password: pwd}),
+    });
+    const auth = await res.json();
+    if (auth.error || !auth.access_token) throw new Error('Credenziali non valide');
     const agents = await sbFetch(`agenti_tracker?email=eq.${encodeURIComponent(email)}&or=(attivo.eq.true,attivo.is.null)`);
-    if (!agents || agents.length === 0 || pwd !== PASSWORD_TEMP) {
-      document.getElementById('login-err').style.display = 'block';
-      return;
-    }
+    if (!agents || agents.length === 0) throw new Error('Profilo non trovato. Contatta l\'amministratore.');
     ME = agents[0];
     ALL_AGENTS = await getAgents();
     startApp();
+  } catch(e) {
+    document.getElementById('login-err').textContent = e.message;
+    document.getElementById('login-err').style.display = 'block';
+  }
+}
   } catch(e) {
     document.getElementById('login-err').textContent = 'Errore connessione. Controlla la configurazione Supabase.';
     document.getElementById('login-err').style.display = 'block';

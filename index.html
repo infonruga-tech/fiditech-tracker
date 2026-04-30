@@ -1853,14 +1853,24 @@ async function saveDeal() {
       // Trova email agente per notifica
       const agenteObj = ALL_AGENTS.find(a => a.id === (data.agente_id || ME.id));
       const agenteEmail = agenteObj?.email || ME.email || '';
+      // Estrai provincia dalla scheda inline se disponibile
+      const schedaInline = data.scheda_inline ? JSON.parse(data.scheda_inline) : {};
+      const provinciaCliente = schedaInline.prov || schedaInline.provincia || 
+        (data.zona_cliente||'').match(/\b([A-Z]{2})\b/)?.[1] || '';
+      
       const params = new URLSearchParams({
         nome: data.client_name||'',
+        telefono: schedaInline.tel || data.telefono || '',
         cf: data.codice_fiscale||'',
         indirizzo: data.zona_cliente||'',
+        citta: schedaInline.citta || '',
+        cap: schedaInline.cap || '',
+        provincia: provinciaCliente,
         agente: ME.nome||'',
         agente_email: agenteEmail,
         id: newId||'',
-        tipo: data.prodotto === 'efficienza' ? (data.scheda_inline ? JSON.parse(data.scheda_inline)?.tipo || 'caldaia' : 'caldaia') : '',
+        trattativa_id: newId||'',
+        tipo: data.prodotto === 'efficienza' ? (schedaInline?.tipo || 'caldaia') : '',
       });
       closeDealModal(); await loadData();
       if (confirm('Trattativa salvata!\n\nAprire il configuratore ' + (PROD[data.prodotto]||'') + ' per questo cliente?')) {

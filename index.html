@@ -907,7 +907,7 @@ async function supaFetch(path, method, body) {
   });
   return res.ok ? res.json() : null;
 }
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtZ2Z1dWpsdXFsaXVvZ2t5ZnlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNzE5MDMsImV4cCI6MjA5MTY0NzkwM30.VjFR3q-o4Y5u31ZPtKXOXfFEC4MdCcUuKano1jv3PcA';
+const SUPA_KEY = 'sb_publishable_9lgVhSf2f1r3OHDacXKRPw_vDYg4noX'; // usa la anon key pubblica
 // NOTA: per sicurezza totale, usa una Edge Function Supabase
 // come proxy. Per iniziare, la anon key va bene con le RLS policy.
 // ============================================================
@@ -1003,25 +1003,26 @@ async function doLogin() {
   const email = document.getElementById('login-email').value.trim().toLowerCase();
   const pwd = document.getElementById('login-pwd').value;
   document.getElementById('login-err').style.display = 'none';
+
+  // Password temporanea: "fiditech2025" per tutti (cambia da Supabase)
+  // In produzione: aggiungi colonna password_hash o usa Supabase Auth
+  const PASSWORD_TEMP = 'fiditech2025';
+
   try {
-    const res = await fetch(`${SUPA_URL}/auth/v1/token?grant_type=password`, {
-      method: 'POST',
-      headers: {'Content-Type':'application/json','apikey':SUPA_KEY},
-      body: JSON.stringify({email, password: pwd}),
-    });
-    const auth = await res.json();
-    if (auth.error || !auth.access_token) throw new Error('Credenziali non valide');
     const agents = await sbFetch(`agenti_tracker?email=eq.${encodeURIComponent(email)}&or=(attivo.eq.true,attivo.is.null)`);
-    if (!agents || agents.length === 0) throw new Error('Profilo non trovato. Contatta l\'amministratore.');
+    if (!agents || agents.length === 0 || pwd !== PASSWORD_TEMP) {
+      document.getElementById('login-err').style.display = 'block';
+      return;
+    }
     ME = agents[0];
     ALL_AGENTS = await getAgents();
     startApp();
   } catch(e) {
-    document.getElementById('login-err').textContent = e.message;
+    document.getElementById('login-err').textContent = 'Errore connessione. Controlla la configurazione Supabase.';
     document.getElementById('login-err').style.display = 'block';
   }
 }
- 
+
 function doLogout() {
   ME = null; deals = []; logs = [];
   document.getElementById('app').classList.remove('visible');
@@ -1889,6 +1890,10 @@ async function saveDeal() {
         trattativa_id: newId||'',
         convenzione: data.convenzione ? 'true' : 'false',
         tipo: data.prodotto === 'efficienza' ? (schedaInline?.tipo || 'caldaia') : '',
+        // Campi opzionali efficientamento — dalla scheda inline
+        potenza_esistente: schedaInline?.potenza_esistente || schedaInline?.pot_kw || '',
+        tipo_split: schedaInline?.tipo_split || '',
+        n_split: schedaInline?.n_split || '',
       });
       closeDealModal(); await loadData();
       if (confirm('Trattativa salvata!\n\nAprire il configuratore ' + (PROD[data.prodotto]||'') + ' per questo cliente?')) {

@@ -1021,12 +1021,7 @@ async function doLogin() {
     document.getElementById('login-err').style.display = 'block';
   }
 }
-  } catch(e) {
-    document.getElementById('login-err').textContent = 'Errore connessione. Controlla la configurazione Supabase.';
-    document.getElementById('login-err').style.display = 'block';
-  }
-}
-
+ 
 function doLogout() {
   ME = null; deals = []; logs = [];
   document.getElementById('app').classList.remove('visible');

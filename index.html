@@ -924,7 +924,7 @@ const PROD = {
 };
 const CONFIGURATORI = {
   fv:         'https://www.ruganicola.it/solare/',
-  fv_pro:     'https://www.ruganicola.it/solar-pro/',
+  fv_pro:     'https://www.ruganicola.it/solar-pro/index.html',
   illumina:   'https://www.ruganicola.it/illumina/',
   bonus:      'https://www.ruganicola.it/bonus/',
   efficienza: 'https://www.ruganicola.it/efficientamento/',
@@ -1889,6 +1889,11 @@ async function saveDeal() {
         id: newId||'',
         trattativa_id: newId||'',
         convenzione: data.convenzione ? 'true' : 'false',
+        // SSO: passa JWT e dati agente al configuratore Solare Pro
+        jwt: sessionStorage.getItem('sb_access_token') || sessionStorage.getItem('sb_jwt') || '',
+        agente_email: agenteEmail,
+        agente_nome: encodeURIComponent(ME.nome||''),
+        ruolo: ME.ruolo||'agente',
         tipo: data.prodotto === 'efficienza' ? (schedaInline?.tipo || 'caldaia') : '',
         // Campi opzionali efficientamento — dalla scheda inline
         potenza_esistente: schedaInline?.potenza_esistente || schedaInline?.pot_kw || '',

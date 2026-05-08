@@ -1888,6 +1888,7 @@ async function saveDeal() {
         agente_email: agenteEmail,
         id: newId||'',
         trattativa_id: newId||'',
+        codice_offerta: data.codice||'',
         convenzione: data.convenzione ? 'true' : 'false',
         // SSO: passa JWT e dati agente al configuratore Solare Pro
         jwt: sessionStorage.getItem('sb_access_token') || sessionStorage.getItem('sb_jwt') || '',

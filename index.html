@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fiditech — Sales Tracker</title>
+<title>Fiditech Sales Tracker</title>
+<script src="config.js"></script>
+<script src="sync-token.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 
@@ -12,7 +14,8 @@
   --bg:#F5F3F0; --bg2:#FFFFFF; --bg3:#FAF8F6; --bg4:#F0EDE9; --bg5:#E8E4DF;
   --border:#E2DDD8; --border2:#CBC4BC; --border3:#B0A8A0;
   --text:#1A1614; --text2:#5C534D; --text3:#9C9490; --text4:#C8C3BE;
-  --amber:#C0392B; --amber2:#9A2820; --amber-bg:rgba(192,57,43,.08); --amber-border:rgba(192,57,43,.22);
+  --primary:#1E264A; --primary2:#151830; --primary-bg:rgba(30,38,74,.08); --primary-border:rgba(30,38,74,.22);
+  --gold:#C9A84C; --gold2:#A88A3A; --gold-bg:rgba(201,168,76,.08); --gold-border:rgba(201,168,76,.22);
   --green:#2D7A4A; --green2:#1E5C35; --green-bg:rgba(45,122,74,.09);
   --red:#B03030; --red2:#8A2020; --red-bg:rgba(176,48,48,.08);
   --blue:#2A5F9A; --blue2:#1A4878; --blue-bg:rgba(42,95,154,.08);
@@ -818,11 +821,12 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
   </div>
 </div>
 
+<script src="config.js"></script>
 <script>
 // ============================================================
-// CONFIG — sostituisci con i tuoi dati Supabase
+// CONFIG — Carica da config.js (variabili d'ambiente)
 // ============================================================
-const SUPA_URL = 'https://emgfuujluqliuogkyfys.supabase.co';
+const SUPA_URL = CONFIG.SUPABASE_URL;
 
 function generaCodiceOfferta(prodotto) {
   const prefissi = { fv: 'MS', fv_pro: 'SP', illumina: 'IL', bonus: 'BN',
@@ -907,7 +911,7 @@ async function supaFetch(path, method, body) {
   });
   return res.ok ? res.json() : null;
 }
-const SUPA_KEY = 'sb_publishable_9lgVhSf2f1r3OHDacXKRPw_vDYg4noX'; // usa la anon key pubblica
+const SUPA_KEY = CONFIG.SUPABASE_ANON_KEY; // usa la anon key pubblica
 // NOTA: per sicurezza totale, usa una Edge Function Supabase
 // come proxy. Per iniziare, la anon key va bene con le RLS policy.
 // ============================================================
@@ -1876,7 +1880,8 @@ async function saveDeal() {
       const provinciaCliente = schedaInline.prov || schedaInline.provincia || 
         (data.zona_cliente||'').match(/\b([A-Z]{2})\b/)?.[1] || '';
       
-      const params = new URLSearchParams({
+      // Usa sync token invece di parametri in chiaro
+      const additionalParams = {
         nome: data.client_name||'',
         telefono: schedaInline.tel || data.telefono || '',
         cf: data.codice_fiscale||'',
@@ -1890,20 +1895,33 @@ async function saveDeal() {
         trattativa_id: newId||'',
         codice_offerta: data.codice||'',
         convenzione: data.convenzione ? 'true' : 'false',
-        // SSO: passa JWT e dati agente al configuratore Solare Pro
         jwt: sessionStorage.getItem('sb_access_token') || sessionStorage.getItem('sb_jwt') || '',
         agente_email: agenteEmail,
         agente_nome: encodeURIComponent(ME.nome||''),
         ruolo: ME.ruolo||'agente',
         tipo: data.prodotto === 'efficienza' ? (schedaInline?.tipo || 'caldaia') : '',
-        // Campi opzionali efficientamento — dalla scheda inline
         potenza_esistente: schedaInline?.potenza_esistente || schedaInline?.pot_kw || '',
         tipo_split: schedaInline?.tipo_split || '',
         n_split: schedaInline?.n_split || '',
-      });
+        // Dati energetici per configuratore solare
+        f1: schedaInline?.f1 || '',
+        f2: schedaInline?.f2 || '',
+        f3: schedaInline?.f3 || '',
+        costo_kwh: schedaInline?.costo_kwh || '',
+        kwp: schedaInline?.kwp || '',
+        superficie: schedaInline?.superficie || '',
+        wifi: schedaInline?.wifi || '',
+        paesaggistica: schedaInline?.paesaggistica || '',
+        fornitura: schedaInline?.fornitura || schedaInline?.tipo_fornitura || '',
+        acc_kwh: schedaInline?.kwh || '',
+        piano_induzione: schedaInline?.piano_induzione || '',
+      };
+      
+      const configuratoreUrl = await generateConfiguratorUrl(newId, confUrl, additionalParams);
+      
       closeDealModal(); await loadData();
       if (confirm('Trattativa salvata!\n\nAprire il configuratore ' + (PROD[data.prodotto]||'') + ' per questo cliente?')) {
-        window.open(confUrl + '?' + params.toString(), '_blank');
+        window.open(configuratoreUrl, '_blank');
       }
       return;
     }
@@ -2548,7 +2566,7 @@ function raccogliSchedaInline(prodotto) {
 // ALL_AGENTS[x].email = email di ogni agente
 // Email via Resend (configurato su Railway backend o Supabase Edge Function)
 // Per ora usa Supabase Edge Function 'send-email' se presente, altrimenti log
-const NOTIFY_URL = 'https://emgfuujluqliuogkyfys.supabase.co/functions/v1/send-email';
+const NOTIFY_URL = CONFIG.SUPABASE_FUNCTIONS_URL + '/send-email';
 
 // Email di fallback dal documento di stato (se Supabase non ha l'email)
 const EMAIL_FALLBACK = {

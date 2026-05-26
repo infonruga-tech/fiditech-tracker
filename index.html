@@ -349,6 +349,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       <div class="f-row"><label class="f-label">CAP</label><input class="f-input" id="f-cap" placeholder="80100" maxlength="5"></div>
       <div class="f-row"><label class="f-label">Provincia</label><input class="f-input" id="f-prov" placeholder="NA" maxlength="2" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
     </div>
+    <div id="sedi-extra" style="display:none;"></div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Servizio / Prodotto</label>
         <select class="f-select" id="f-prod" onchange="onProdChange()">
@@ -1749,7 +1750,7 @@ function openDealModal() {
   document.getElementById('deal-save-btn').textContent = 'Salva';
   ['f-client','f-piva','f-cf','f-addr','f-comune','f-cap','f-prov','f-val','f-zone','f-notes','f-next','f-rejection-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('f-next-action').value = '';
-  document.getElementById('sedi-extra').innerHTML = '';
+  const sediEl=document.getElementById('sedi-extra'); if(sediEl) sediEl.innerHTML = '';
   document.getElementById('piva-feedback').style.display = 'none';
   document.getElementById('rejection-section').style.display = 'none';
   document.querySelectorAll('#rejection-tags .tag').forEach(t=>t.classList.remove('sel'));

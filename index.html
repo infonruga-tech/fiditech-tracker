@@ -1888,7 +1888,8 @@ async function saveDeal() {
         indirizzo: data.zona_cliente||'',
         citta: schedaInline.citta || '',
         cap: schedaInline.cap || '',
-        provincia: provinciaCliente,
+        provincia: provinciaCliente || schedaInline?.prov || schedaInline?.caldaia?.prov || '',
+        citta: schedaInline?.comune || schedaInline?.caldaia?.comune || schedaInline?.citta || '',
         agente: ME.nome||'',
         agente_email: agenteEmail,
         id: newId||'',
@@ -2487,34 +2488,14 @@ function validaSchedaInline(prodotto) {
     if (!tipo) { mancanti.push('Tipo intervento (caldaia/clima/entrambi)'); }
     else {
       if (tipo === 'caldaia' || tipo === 'entrambi') {
+        // Campi essenziali per il preventivo — i dettagli tecnici li raccoglie il configuratore
         if (!gr('si-tipo-int-cald')) mancanti.push('Nuovo impianto o sostituzione (caldaia)');
-        if (!g('si-cald-marca')) mancanti.push('Marca/modello caldaia');
-        if (!g('si-cald-pos')) mancanti.push('Posizione caldaia');
-        if (!g('si-fumi')) mancanti.push('Tipo scarico fumi');
-        if (!g('si-alt-fumi')) mancanti.push('Altezza scarico fumi');
-        if (!g('si-cond-canna')) mancanti.push('Canna fumaria a condensazione');
-        if (!g('si-incam')) mancanti.push('Incamiciamento');
-        if (!g('si-condensa')) mancanti.push('Distanza scarico condensa');
-        if (!g('si-pend')) mancanti.push('Pendenza condensa');
-        if (!g('si-valvole')) mancanti.push('Valvole di zona');
-        if (!g('si-n-termo')) mancanti.push('N. termosifoni');
-        if (!g('si-pavim')) mancanti.push('Impianto a pavimento');
-        if (!g('si-ghisa')) mancanti.push('N. termosifoni in ghisa');
-        if (!g('si-monotubo')) mancanti.push('Valvole monotubo');
-        if (!g('si-areaz')) mancanti.push('Areazione stanza');
         if (!g('si-mq')) mancanti.push('Metratura appartamento');
-        if (!g('si-cestello-c')) mancanti.push('Necessità cestello (caldaia)');
       }
       if (tipo === 'clima' || tipo === 'entrambi') {
+        // Campi essenziali — i dettagli tecnici li raccoglie il configuratore
         if (!gr('si-tipo-int-clima')) mancanti.push('Nuovo impianto o sostituzione (clima)');
-        if (!g('si-clima-marca')) mancanti.push('Marca/modello clima');
-        if (!g('si-pred')) mancanti.push('Predisposizione esistente');
-        if (!g('si-n-stanze')) mancanti.push('N. stanze');
-        if (!g('si-dist1')) mancanti.push('Distanza split 1');
-        if (!g('si-mis-est')) mancanti.push('Misure unità esterna');
-        if (!g('si-mt-terra')) mancanti.push('Metri da terra unità esterna');
-        if (!g('si-lv-clima')) mancanti.push('Linea vita tetto');
-        if (!g('si-cestello-cl')) mancanti.push('Necessità cestello (clima)');
+        if (!g('si-n-stanze')) mancanti.push('N. stanze da climatizzare');
       }
     }
   }
@@ -2561,6 +2542,7 @@ function raccogliSchedaInline(prodotto) {
       valvole: g('si-valvole'), n_termo: g('si-n-termo'), pavim: g('si-pavim'),
       ghisa: g('si-ghisa'), monotubo: g('si-monotubo'), areaz: g('si-areaz'),
       mq: g('si-mq'), cestello: g('si-cestello-c'),
+      comune: g('si-comune'), prov: g('si-prov-eff'),
     } : null;
     const clim = tipo === 'clima' || tipo === 'entrambi' ? {
       tipo_int: gr('si-tipo-int-clima'), marca: g('si-clima-marca'),
@@ -2910,6 +2892,8 @@ const SCHEDE_HTML = {
     </div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Metratura appartamento mq <span class="req">*</span></label><input class="f-input" id="si-mq" type="number" placeholder="Es. 90"></div>
+      <div class="f-row"><label class="f-label">Comune cliente</label><input class="f-input" id="si-comune" type="text" placeholder="Es. Napoli"></div>
+      <div class="f-row"><label class="f-label">Provincia (sigla)</label><input class="f-input" id="si-prov-eff" type="text" placeholder="Es. NA" maxlength="2" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
       <div class="f-row"><label class="f-label">Necessità cestello <span class="req">*</span></label>
         <select class="f-select" id="si-cestello-c"><option value="">—</option><option>No</option><option>Sì</option></select>
       </div>

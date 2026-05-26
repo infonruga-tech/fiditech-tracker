@@ -208,12 +208,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div id="login-screen">
   <div class="login-box">
     <div class="login-logo">
-  <svg height="30" viewBox="0 0 165 38" xmlns="http://www.w3.org/2000/svg">
-    <text x="0" y="28" font-family="Georgia,serif" font-weight="700" font-size="28" fill="var(--text)">migli</text>
-    <circle cx="101" cy="18" r="10" fill="#C0392B"/>
-    <circle cx="101" cy="18" r="6.5" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
-    <circle cx="101" cy="18" r="2.5" fill="rgba(255,255,255,.7)"/>
-    <text x="112" y="28" font-family="Georgia,serif" font-weight="700" font-size="28" fill="#C0392B">ra</text>
+  <svg height="44" viewBox="0 0 200 44" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="21" r="20" fill="#C0392B"/>
+    <text x="20" y="29" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="white" text-anchor="middle">M</text>
+    <text x="46" y="24" font-family="Arial Black,sans-serif" font-weight="800" font-size="22" fill="var(--text)">igliora</text>
+    <text x="47" y="38" font-family="Arial,sans-serif" font-size="11" fill="#C0392B">Ci pensiamo noi</text>
   </svg>
 </div>
     <div class="login-title">Sales Tracker</div>
@@ -231,12 +230,11 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div id="app">
   <div class="topbar">
     <div class="topbar-logo">
-  <svg height="24" viewBox="0 0 165 38" xmlns="http://www.w3.org/2000/svg">
-    <text x="0" y="28" font-family="Georgia,serif" font-weight="700" font-size="28" fill="var(--text)">migli</text>
-    <circle cx="101" cy="18" r="10" fill="#C0392B"/>
-    <circle cx="101" cy="18" r="6.5" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.5"/>
-    <circle cx="101" cy="18" r="2.5" fill="rgba(255,255,255,.7)"/>
-    <text x="112" y="28" font-family="Georgia,serif" font-weight="700" font-size="28" fill="#C0392B">ra</text>
+  <svg height="44" viewBox="0 0 200 44" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="20" cy="21" r="20" fill="#C0392B"/>
+    <text x="20" y="29" font-family="Arial Black,sans-serif" font-weight="900" font-size="22" fill="white" text-anchor="middle">M</text>
+    <text x="46" y="24" font-family="Arial Black,sans-serif" font-weight="800" font-size="22" fill="var(--text)">igliora</text>
+    <text x="47" y="38" font-family="Arial,sans-serif" font-size="11" fill="#C0392B">Ci pensiamo noi</text>
   </svg>
 </div>
     <div class="topbar-tabs">
@@ -337,15 +335,21 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 <div class="overlay" id="deal-modal">
   <div class="modal" style="max-width:560px;">
     <div class="modal-title" id="deal-modal-title">Nuova trattativa</div>
-    <div class="f-row"><label class="f-label">Nome cliente / azienda</label><input class="f-input" id="f-client" placeholder="Es. Officine Rossi Srl"></div>
+    <div class="f-row"><label class="f-label">Nome e Cognome / Ragione Sociale <span style="color:var(--amber2)">*</span></label>
+      <input class="f-input" id="f-client" placeholder="Es. Mario Rossi oppure Officine Rossi Srl"></div>
     <div class="f-grid">
-      <div class="f-row"><label class="f-label">P.IVA</label><input class="f-input" id="f-piva" placeholder="01234567890" maxlength="11" oninput="checkPiva(this.value)"></div>
-      <div class="f-row"><label class="f-label">Codice Fiscale</label><input class="f-input" id="f-cf" placeholder="RSSMRA80A01H501U" maxlength="16"></div>
+      <div class="f-row"><label class="f-label">P.IVA</label><input class="f-input" id="f-piva" placeholder="01234567890" maxlength="11" oninput="checkDuplicato('piva',this.value)"></div>
+      <div class="f-row"><label class="f-label">Codice Fiscale</label><input class="f-input" id="f-cf" placeholder="RSSMRA80A01H501U" maxlength="16" oninput="checkDuplicato('cf',this.value)"></div>
     </div>
     <div id="piva-feedback" class="piva-warn"></div>
-    <div class="f-row" style="margin-top:4px;"><label class="f-label">Indirizzo sede principale</label><input class="f-input" id="f-addr" placeholder="Es. Via Roma 10, 20100 Milano (MI)"></div>
-    <div id="sedi-extra"></div>
-    <button class="btn-link" onclick="addSede()" style="margin-bottom:12px;">+ Aggiungi sede aggiuntiva</button>
+    <div id="duplicato-warning" style="display:none;background:#fdf1f0;border:1px solid #e74c3c;border-radius:6px;padding:10px 14px;margin-bottom:10px;font-size:13px;color:#c0392b;"></div>
+    <div class="f-row" style="margin-top:4px;"><label class="f-label">Indirizzo installazione</label>
+      <input class="f-input" id="f-addr" placeholder="Es. Via Roma 10"></div>
+    <div class="f-grid">
+      <div class="f-row"><label class="f-label">Comune</label><input class="f-input" id="f-comune" placeholder="Es. Napoli"></div>
+      <div class="f-row"><label class="f-label">CAP</label><input class="f-input" id="f-cap" placeholder="80100" maxlength="5"></div>
+      <div class="f-row"><label class="f-label">Provincia</label><input class="f-input" id="f-prov" placeholder="NA" maxlength="2" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
+    </div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Servizio / Prodotto</label>
         <select class="f-select" id="f-prod" onchange="onProdChange()">
@@ -401,7 +405,7 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
       </div>
     </div>
     <div class="f-grid">
-      <div class="f-row"><label class="f-label">Zona cliente</label><input class="f-input" id="f-zone" placeholder="Es. Milano (MI)"></div>
+      <div style="display:none"><input id="f-zone" value=""></div>
       <div class="f-row"><label class="f-label">Probabilita</label>
         <select class="f-select" id="f-prob">
           <option value="low">Bassa (0-30%)</option>
@@ -1745,7 +1749,7 @@ function openDealModal() {
   editingDealId = null;
   document.getElementById('deal-modal-title').textContent = 'Nuova trattativa';
   document.getElementById('deal-save-btn').textContent = 'Salva';
-  ['f-client','f-piva','f-cf','f-addr','f-val','f-zone','f-notes','f-next','f-rejection-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  ['f-client','f-piva','f-cf','f-addr','f-comune','f-cap','f-prov','f-val','f-zone','f-notes','f-next','f-rejection-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('f-next-action').value = '';
   document.getElementById('sedi-extra').innerHTML = '';
   document.getElementById('piva-feedback').style.display = 'none';
@@ -1809,7 +1813,12 @@ async function saveDeal() {
     valore_stimato: parseInt(document.getElementById('f-val').value)||0,
     stage: parseInt(document.getElementById('f-stage').value),
     probabilita: document.getElementById('f-prob').value,
-    zona_cliente: document.getElementById('f-zone').value.trim(),
+    zona_cliente: [
+      document.getElementById('f-addr')?.value?.trim()||'',
+      document.getElementById('f-comune')?.value?.trim()||'',
+      document.getElementById('f-cap')?.value?.trim()||'',
+      document.getElementById('f-prov')?.value?.trim()?'('+document.getElementById('f-prov').value.trim().toUpperCase()+')':''
+    ].filter(Boolean).join(' ').trim(),
     note: document.getElementById('f-notes').value.trim(),
     next_followup: document.getElementById('f-next').value || null,
     next_action: document.getElementById('f-next-action').value || null,
@@ -1888,8 +1897,9 @@ async function saveDeal() {
         indirizzo: data.zona_cliente||'',
         citta: schedaInline.citta || '',
         cap: schedaInline.cap || '',
-        provincia: provinciaCliente || schedaInline?.prov || schedaInline?.caldaia?.prov || '',
-        citta: schedaInline?.comune || schedaInline?.caldaia?.comune || schedaInline?.citta || '',
+        provincia: provinciaCliente || document.getElementById('f-prov')?.value || '',
+        citta: schedaInline?.citta || document.getElementById('f-comune')?.value || '',
+        cap: document.getElementById('f-cap')?.value || '',
         agente: ME.nome||'',
         agente_email: agenteEmail,
         id: newId||'',
@@ -1904,20 +1914,6 @@ async function saveDeal() {
         potenza_esistente: schedaInline?.potenza_esistente || schedaInline?.pot_kw || '',
         tipo_split: schedaInline?.tipo_split || '',
         n_split: schedaInline?.n_split || '',
-        // Dati caldaia
-        flag_nuovo: data.prodotto === 'efficienza' ? (schedaInline?.caldaia?.tipo_int || schedaInline?.tipo_int || '') : '',
-        mq: data.prodotto === 'efficienza' ? (schedaInline?.caldaia?.mq || schedaInline?.mq || '') : '',
-        n_termo: data.prodotto === 'efficienza' ? (schedaInline?.caldaia?.n_termo || '') : '',
-        pavim: data.prodotto === 'efficienza' ? (schedaInline?.caldaia?.pavim || '') : '',
-        // Dati clima
-        n_stanze: data.prodotto === 'efficienza' ? (schedaInline?.clima?.n_stanze || '') : '',
-        dist1: data.prodotto === 'efficienza' ? (schedaInline?.clima?.dist1 || '') : '',
-        dist2: data.prodotto === 'efficienza' ? (schedaInline?.clima?.dist2 || '') : '',
-        dist3: data.prodotto === 'efficienza' ? (schedaInline?.clima?.dist3 || '') : '',
-        mis_est: data.prodotto === 'efficienza' ? (schedaInline?.clima?.mis_est || '') : '',
-        // Agente
-        agente: ME.nome || '',
-        agente_email: agenteEmail,
         // Dati energetici per configuratore solare
         f1: schedaInline?.f1 || '',
         f2: schedaInline?.f2 || '',
@@ -2488,14 +2484,34 @@ function validaSchedaInline(prodotto) {
     if (!tipo) { mancanti.push('Tipo intervento (caldaia/clima/entrambi)'); }
     else {
       if (tipo === 'caldaia' || tipo === 'entrambi') {
-        // Campi essenziali per il preventivo — i dettagli tecnici li raccoglie il configuratore
         if (!gr('si-tipo-int-cald')) mancanti.push('Nuovo impianto o sostituzione (caldaia)');
+        if (!g('si-cald-marca')) mancanti.push('Marca/modello caldaia');
+        if (!g('si-cald-pos')) mancanti.push('Posizione caldaia');
+        if (!g('si-fumi')) mancanti.push('Tipo scarico fumi');
+        if (!g('si-alt-fumi')) mancanti.push('Altezza scarico fumi');
+        if (!g('si-cond-canna')) mancanti.push('Canna fumaria a condensazione');
+        if (!g('si-incam')) mancanti.push('Incamiciamento');
+        if (!g('si-condensa')) mancanti.push('Distanza scarico condensa');
+        if (!g('si-pend')) mancanti.push('Pendenza condensa');
+        if (!g('si-valvole')) mancanti.push('Valvole di zona');
+        if (!g('si-n-termo')) mancanti.push('N. termosifoni');
+        if (!g('si-pavim')) mancanti.push('Impianto a pavimento');
+        if (!g('si-ghisa')) mancanti.push('N. termosifoni in ghisa');
+        if (!g('si-monotubo')) mancanti.push('Valvole monotubo');
+        if (!g('si-areaz')) mancanti.push('Areazione stanza');
         if (!g('si-mq')) mancanti.push('Metratura appartamento');
+        if (!g('si-cestello-c')) mancanti.push('Necessità cestello (caldaia)');
       }
       if (tipo === 'clima' || tipo === 'entrambi') {
-        // Campi essenziali — i dettagli tecnici li raccoglie il configuratore
         if (!gr('si-tipo-int-clima')) mancanti.push('Nuovo impianto o sostituzione (clima)');
-        if (!g('si-n-stanze')) mancanti.push('N. stanze da climatizzare');
+        if (!g('si-clima-marca')) mancanti.push('Marca/modello clima');
+        if (!g('si-pred')) mancanti.push('Predisposizione esistente');
+        if (!g('si-n-stanze')) mancanti.push('N. stanze');
+        if (!g('si-dist1')) mancanti.push('Distanza split 1');
+        if (!g('si-mis-est')) mancanti.push('Misure unità esterna');
+        if (!g('si-mt-terra')) mancanti.push('Metri da terra unità esterna');
+        if (!g('si-lv-clima')) mancanti.push('Linea vita tetto');
+        if (!g('si-cestello-cl')) mancanti.push('Necessità cestello (clima)');
       }
     }
   }
@@ -2542,7 +2558,6 @@ function raccogliSchedaInline(prodotto) {
       valvole: g('si-valvole'), n_termo: g('si-n-termo'), pavim: g('si-pavim'),
       ghisa: g('si-ghisa'), monotubo: g('si-monotubo'), areaz: g('si-areaz'),
       mq: g('si-mq'), cestello: g('si-cestello-c'),
-      comune: g('si-comune'), prov: g('si-prov-eff'),
     } : null;
     const clim = tipo === 'clima' || tipo === 'entrambi' ? {
       tipo_int: gr('si-tipo-int-clima'), marca: g('si-clima-marca'),
@@ -2892,8 +2907,6 @@ const SCHEDE_HTML = {
     </div>
     <div class="f-grid">
       <div class="f-row"><label class="f-label">Metratura appartamento mq <span class="req">*</span></label><input class="f-input" id="si-mq" type="number" placeholder="Es. 90"></div>
-      <div class="f-row"><label class="f-label">Comune cliente</label><input class="f-input" id="si-comune" type="text" placeholder="Es. Napoli"></div>
-      <div class="f-row"><label class="f-label">Provincia (sigla)</label><input class="f-input" id="si-prov-eff" type="text" placeholder="Es. NA" maxlength="2" style="text-transform:uppercase" oninput="this.value=this.value.toUpperCase()"></div>
       <div class="f-row"><label class="f-label">Necessità cestello <span class="req">*</span></label>
         <select class="f-select" id="si-cestello-c"><option value="">—</option><option>No</option><option>Sì</option></select>
       </div>
@@ -3076,6 +3089,22 @@ document.getElementById('login-email').addEventListener('keydown', e => { if(e.k
     console.log('Auto-login fallito, mostra login normale:', e);
   }
 })();
+
+function checkDuplicato(tipo, val) {
+  var warningEl = document.getElementById('duplicato-warning');
+  if (!warningEl || !val || val.length < 5) { if(warningEl) warningEl.style.display='none'; return; }
+  var field = tipo === 'piva' ? 'piva' : 'codice_fiscale';
+  sbFetch('trattative?'+field+'=eq.'+encodeURIComponent(val)+'&select=id,agente_id,client_name')
+    .then(function(trattative) {
+      if (!trattative || !trattative.length) { warningEl.style.display='none'; return; }
+      var altri = trattative.filter(function(t){ return t.agente_id !== ME.id; });
+      if (altri.length > 0) {
+        warningEl.style.display = 'block';
+        warningEl.innerHTML = '<strong>⚠️ Attenzione:</strong> '+(tipo==='piva'?'P.IVA':'Codice Fiscale')+
+          ' già registrata per: <strong>'+altri[0].client_name+'</strong> (altro agente). Contatta Admin.';
+      } else { warningEl.style.display='none'; }
+    }).catch(function(){ if(warningEl) warningEl.style.display='none'; });
+}
 </script>
 </body>
 </html>

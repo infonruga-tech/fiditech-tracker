@@ -1903,6 +1903,20 @@ async function saveDeal() {
         potenza_esistente: schedaInline?.potenza_esistente || schedaInline?.pot_kw || '',
         tipo_split: schedaInline?.tipo_split || '',
         n_split: schedaInline?.n_split || '',
+        // Dati caldaia
+        flag_nuovo: data.prodotto === 'efficienza' ? (schedaInline?.caldaia?.tipo_int || schedaInline?.tipo_int || '') : '',
+        mq: data.prodotto === 'efficienza' ? (schedaInline?.caldaia?.mq || schedaInline?.mq || '') : '',
+        n_termo: data.prodotto === 'efficienza' ? (schedaInline?.caldaia?.n_termo || '') : '',
+        pavim: data.prodotto === 'efficienza' ? (schedaInline?.caldaia?.pavim || '') : '',
+        // Dati clima
+        n_stanze: data.prodotto === 'efficienza' ? (schedaInline?.clima?.n_stanze || '') : '',
+        dist1: data.prodotto === 'efficienza' ? (schedaInline?.clima?.dist1 || '') : '',
+        dist2: data.prodotto === 'efficienza' ? (schedaInline?.clima?.dist2 || '') : '',
+        dist3: data.prodotto === 'efficienza' ? (schedaInline?.clima?.dist3 || '') : '',
+        mis_est: data.prodotto === 'efficienza' ? (schedaInline?.clima?.mis_est || '') : '',
+        // Agente
+        agente: ME.nome || '',
+        agente_email: agenteEmail,
         // Dati energetici per configuratore solare
         f1: schedaInline?.f1 || '',
         f2: schedaInline?.f2 || '',

@@ -431,6 +431,19 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
     </div>
     <div class="f-row"><label class="f-label">Note / stato attuale</label><textarea class="f-textarea" id="f-notes" placeholder="Cosa e successo nell'ultimo contatto? Quali obiezioni? Prossimo step?"></textarea></div>
     <div class="f-row" id="convenzione-row" style="display:none">
+      <!-- UPLOAD ALLEGATI -->
+      <div style="margin-bottom:16px;">
+        <label class="f-label" style="margin-bottom:6px;display:block;">📎 Documenti allegati <span style="font-size:11px;color:var(--text3);font-weight:400">(facoltativo)</span></label>
+        <div class="upload-area" id="upload-area" onclick="document.getElementById('file-input').click()"
+             ondragover="event.preventDefault();this.classList.add('dragover')"
+             ondragleave="this.classList.remove('dragover')"
+             ondrop="handleDrop(event)">
+          <div style="font-size:22px;margin-bottom:4px;">📁</div>
+          <div style="font-size:12px;color:var(--text3);">Clicca o trascina qui<br><span style="font-size:11px;">Foto, PDF, Word — max 5 file · 5MB cadauno</span></div>
+        </div>
+        <input type="file" id="file-input" multiple accept="image/*,.pdf,.doc,.docx" style="display:none" onchange="handleFileSelect(this.files)">
+        <div class="allegati-list" id="allegati-list"></div>
+      </div>
       <label class="f-label">Prezzo convenzionato</label>
       <label style="display:flex;align-items:center;gap:10px;cursor:pointer;padding:8px 12px;background:var(--amber-bg);border:1px solid var(--amber-border);border-radius:var(--r);font-size:13px">
         <input type="checkbox" id="f-convenzione" style="width:16px;height:16px;accent-color:var(--amber2)">
@@ -1748,6 +1761,7 @@ function openDealModal() {
   editingDealId = null;
   document.getElementById('deal-modal-title').textContent = 'Nuova trattativa';
   document.getElementById('deal-save-btn').textContent = 'Salva';
+  resetAllegati();
   ['f-client','f-piva','f-cf','f-addr','f-comune','f-cap','f-prov','f-val','f-zone','f-notes','f-next','f-rejection-note'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
   document.getElementById('f-next-action').value = '';
   const sediEl=document.getElementById('sedi-extra'); if(sediEl) sediEl.innerHTML = '';
@@ -1824,6 +1838,7 @@ async function saveDeal() {
     rejection_tags: rejTags || null,
     rejection_note: document.getElementById('f-rejection-note')?.value?.trim() || null,
     scheda_inline: schedaInlineData ? JSON.stringify(schedaInlineData) : null,
+    allegati: allegatiCorrente.length > 0 ? JSON.stringify(allegatiCorrente.map(a=>({nome:a.nome,tipo:a.tipo,dim:a.dim,data:a.data}))) : null,
     convenzione: document.getElementById('convenzione-row')?.style.display !== 'none' 
       ? (document.getElementById('f-convenzione')?.checked || false) 
       : false,
@@ -1893,12 +1908,10 @@ async function saveDeal() {
         nome: data.client_name||'',
         telefono: schedaInline.tel || data.telefono || '',
         cf: data.codice_fiscale||'',
-        indirizzo: data.zona_cliente||'',
-        citta: schedaInline.citta || '',
-        cap: schedaInline.cap || '',
-        provincia: provinciaCliente || document.getElementById('f-prov')?.value || '',
-        citta: schedaInline?.citta || document.getElementById('f-comune')?.value || '',
-        cap: document.getElementById('f-cap')?.value || '',
+        indirizzo: (data.zona_cliente||'').split('(')[0].replace(/—/g,'').trim() || '',
+        citta: schedaInline?.comune || schedaInline?.citta || (data.zona_cliente||'').split(' ').find(p=>p.length>3&&!p.startsWith('('))||'',
+        cap: schedaInline?.cap || (data.zona_cliente||'').match(/\b\d{5}\b/)?.[0] || '',
+        provincia: provinciaCliente || schedaInline?.prov || (data.zona_cliente||'').match(/\(([A-Z]{2})\)/)?.[1] || '',
         agente: ME.nome||'',
         agente_email: agenteEmail,
         id: newId||'',
@@ -1910,6 +1923,9 @@ async function saveDeal() {
         agente_nome: encodeURIComponent(ME.nome||''),
         ruolo: ME.ruolo||'agente',
         tipo: data.prodotto === 'efficienza' ? (schedaInline?.tipo || 'caldaia') : '',
+        mq: schedaInline?.mq || schedaInline?.caldaia?.mq || '',
+        n_stanze: schedaInline?.n_stanze || schedaInline?.clima?.n_stanze || '',
+        flag_nuovo: schedaInline?.flag_nuovo || schedaInline?.caldaia?.flag_nuovo || 'sostituzione',
         potenza_esistente: schedaInline?.potenza_esistente || schedaInline?.pot_kw || '',
         tipo_split: schedaInline?.tipo_split || '',
         n_split: schedaInline?.n_split || '',
@@ -2568,7 +2584,14 @@ function raccogliSchedaInline(prodotto) {
       mis_est: g('si-mis-est'), mt_terra: g('si-mt-terra'),
       lv: g('si-lv-clima'), cestello: g('si-cestello-cl'),
     } : null;
-    return { tipo, caldaia: cald, clima: clim };
+    return { 
+      tipo, caldaia: cald, clima: clim,
+      // Dati geografici dal form principale
+      comune: document.getElementById('f-comune')?.value?.trim() || '',
+      prov: document.getElementById('f-prov')?.value?.trim() || '',
+      cap: document.getElementById('f-cap')?.value?.trim() || '',
+      mq: cald?.mq || clim?.n_stanze || '',
+    };
   }
   return null;
 }
@@ -3091,6 +3114,67 @@ document.getElementById('login-email').addEventListener('keydown', e => { if(e.k
     console.log('Auto-login fallito, mostra login normale:', e);
   }
 })();
+
+// ── UPLOAD ALLEGATI ──────────────────────────────────────────────────────────
+let allegatiCorrente = [];
+
+function getFileIcon(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  if (['jpg','jpeg','png','gif','webp'].includes(ext)) return '🖼️';
+  if (ext === 'pdf') return '📄';
+  if (['doc','docx'].includes(ext)) return '📝';
+  return '📎';
+}
+
+function formatSize(bytes) {
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
+  return (bytes/(1024*1024)).toFixed(1) + ' MB';
+}
+
+function handleFileSelect(files) {
+  Array.from(files).forEach(file => {
+    if (file.size > 5*1024*1024) { toast('File troppo grande: ' + file.name + ' (max 5MB)', 'warn'); return; }
+    if (allegatiCorrente.length >= 5) { toast('Massimo 5 allegati per trattativa', 'warn'); return; }
+    const reader = new FileReader();
+    reader.onload = e => {
+      allegatiCorrente.push({ nome: file.name, tipo: file.type, dim: file.size, data: e.target.result });
+      renderAllegati();
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+function handleDrop(event) {
+  event.preventDefault();
+  document.getElementById('upload-area').classList.remove('dragover');
+  handleFileSelect(event.dataTransfer.files);
+}
+
+function rimuoviAllegato(idx) {
+  allegatiCorrente.splice(idx, 1);
+  renderAllegati();
+}
+
+function renderAllegati() {
+  const list = document.getElementById('allegati-list');
+  if (!list) return;
+  list.innerHTML = allegatiCorrente.map((a, i) => `
+    <div class="allegato-item">
+      <span class="allegato-icon">${getFileIcon(a.nome)}</span>
+      <span class="allegato-nome">${a.nome}</span>
+      <span class="allegato-dim">${formatSize(a.dim)}</span>
+      <button class="allegato-del" onclick="rimuoviAllegato(${i})" title="Rimuovi">✕</button>
+    </div>
+  `).join('');
+}
+
+function resetAllegati() {
+  allegatiCorrente = [];
+  renderAllegati();
+  const fi = document.getElementById('file-input');
+  if (fi) fi.value = '';
+}
 
 function checkDuplicato(tipo, val) {
   var warningEl = document.getElementById('duplicato-warning');

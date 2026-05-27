@@ -920,7 +920,7 @@ async function supaFetch(path, method, body) {
     headers: {
       'Content-Type': 'application/json',
       'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Authorization': 'Bearer ' + getAuthToken(),
       'Prefer': method === 'POST' ? 'return=representation' : ''
     },
     body: body ? JSON.stringify(body) : undefined
@@ -928,6 +928,7 @@ async function supaFetch(path, method, body) {
   return res.ok ? res.json() : null;
 }
 const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImVtZ2Z1dWpsdXFsaXVvZ2t5ZnlzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYwNzE5MDMsImV4cCI6MjA5MTY0NzkwM30.VjFR3q-o4Y5u31ZPtKXOXfFEC4MdCcUuKano1jv3PcA';
+function getAuthToken() { return window._supaAccessToken || SUPA_KEY; }
 // NOTA: per sicurezza totale, usa una Edge Function Supabase
 // come proxy. Per iniziare, la anon key va bene con le RLS policy.
 // ============================================================
@@ -976,7 +977,7 @@ async function sbFetch(path, opts={}) {
     ...opts,
     headers: {
       'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Authorization': 'Bearer ' + getAuthToken(),
       'Content-Type': 'application/json',
       'Prefer': opts.prefer || 'return=representation',
       ...(opts.headers||{})
@@ -1024,27 +1025,68 @@ async function doLogin() {
   const pwd = document.getElementById('login-pwd').value;
   document.getElementById('login-err').style.display = 'none';
 
-  // Password temporanea: "fiditech2025" per tutti (cambia da Supabase)
-  // In produzione: aggiungi colonna password_hash o usa Supabase Auth
-  const PASSWORD_TEMP = 'fiditech2025';
-
   try {
-    const agents = await sbFetch(`agenti_tracker?email=eq.${encodeURIComponent(email)}&or=(attivo.eq.true,attivo.is.null)`);
-    if (!agents || agents.length === 0 || pwd !== PASSWORD_TEMP) {
+    // Login con Supabase Auth
+    const res = await fetch(SUPA_URL + '/auth/v1/token?grant_type=password', {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pwd })
+    });
+    const auth = await res.json();
+    if (!auth.access_token) {
       document.getElementById('login-err').style.display = 'block';
       return;
     }
-    ME = agents[0];
-    ALL_AGENTS = await getAgents();
-    startApp();
+    // Salva tokens in localStorage per riuso futuro
+    localStorage.setItem('tracker_access_token', auth.access_token);
+    localStorage.setItem('tracker_refresh_token', auth.refresh_token);
+    localStorage.setItem('tracker_email', email);
+
+    await loginConToken(auth.access_token, email);
   } catch(e) {
-    document.getElementById('login-err').textContent = 'Errore connessione. Controlla la configurazione Supabase.';
+    document.getElementById('login-err').textContent = 'Errore connessione.';
     document.getElementById('login-err').style.display = 'block';
   }
 }
 
+async function loginConToken(accessToken, email) {
+  // Imposta token per le chiamate Supabase
+  window._supaAccessToken = accessToken;
+  const agents = await sbFetch('agenti_tracker?email=eq.' + encodeURIComponent(email) + '&or=(attivo.eq.true,attivo.is.null)');
+  if (!agents || agents.length === 0) {
+    document.getElementById('login-err').style.display = 'block';
+    return false;
+  }
+  ME = agents[0];
+  ALL_AGENTS = await getAgents();
+  startApp();
+  return true;
+}
+
+async function refreshTokenSilente() {
+  const refreshToken = localStorage.getItem('tracker_refresh_token');
+  if (!refreshToken) return false;
+  try {
+    const res = await fetch(SUPA_URL + '/auth/v1/token?grant_type=refresh_token', {
+      method: 'POST',
+      headers: { 'apikey': SUPA_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken })
+    });
+    const auth = await res.json();
+    if (!auth.access_token) return false;
+    localStorage.setItem('tracker_access_token', auth.access_token);
+    localStorage.setItem('tracker_refresh_token', auth.refresh_token);
+    window._supaAccessToken = auth.access_token;
+    return auth.access_token;
+  } catch(e) { return false; }
+}
+
 function doLogout() {
   ME = null; deals = []; logs = [];
+  localStorage.removeItem('tracker_access_token');
+  localStorage.removeItem('tracker_refresh_token');
+  localStorage.removeItem('tracker_email');
+  window._supaAccessToken = null;
   document.getElementById('app').classList.remove('visible');
   document.getElementById('login-screen').style.display = 'flex';
 }
@@ -1369,7 +1411,7 @@ async function supaFetch(path, method, body) {
     headers: {
       'Content-Type': 'application/json',
       'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Authorization': 'Bearer ' + getAuthToken(),
       'Prefer': method === 'POST' ? 'return=representation' : ''
     },
     body: body ? JSON.stringify(body) : undefined
@@ -2346,7 +2388,7 @@ async function uploadSchedaFile(file, trattativaId, categoria) {
     method: 'POST',
     headers: {
       'apikey': SUPA_KEY,
-      'Authorization': 'Bearer ' + SUPA_KEY,
+      'Authorization': 'Bearer ' + getAuthToken(),
       'Content-Type': file.type || 'application/octet-stream',
       'x-upsert': 'true'
     },
@@ -2623,7 +2665,7 @@ async function sendEmail(to, toName, subject, bodyHtml) {
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + SUPA_KEY,
+        'Authorization': 'Bearer ' + getAuthToken(),
       },
       body: JSON.stringify({to, toName, subject, bodyHtml})
     });
@@ -3078,41 +3120,48 @@ document.getElementById('login-pwd').addEventListener('keydown', e => { if(e.key
 document.getElementById('login-email').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('login-pwd').focus(); });
 
 // ============================================================
-// AUTO-LOGIN via JWT dal CRM
+// AUTO-LOGIN: prova JWT dal CRM → refresh_token da localStorage → login manuale
 // ============================================================
 (async function autoLoginFromCRM() {
   const urlParams = new URLSearchParams(window.location.search);
   const jwt = urlParams.get('jwt') || urlParams.get('token');
-  if (!jwt) return; // nessun token, mostra login normale
 
-  try {
-    // Verifica il JWT con Supabase
-    const res = await fetch(SUPA_URL + '/auth/v1/user', {
-      headers: {
-        'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + jwt
+  // 1. JWT dal CRM nell'URL
+  if (jwt) {
+    try {
+      const res = await fetch(SUPA_URL + '/auth/v1/user', {
+        headers: { 'apikey': SUPA_KEY, 'Authorization': 'Bearer ' + jwt }
+      });
+      if (res.ok) {
+        const user = await res.json();
+        if (user && user.email) {
+          window._supaAccessToken = jwt;
+          // Salva in localStorage per le prossime visite
+          localStorage.setItem('tracker_access_token', jwt);
+          localStorage.setItem('tracker_email', user.email);
+          const ok = await loginConToken(jwt, user.email);
+          if (ok) {
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
+          }
+        }
       }
-    });
-    if (!res.ok) return; // token non valido, mostra login normale
-
-    const user = await res.json();
-    if (!user || !user.email) return;
-
-    // Cerca l'agente nella tabella agenti_tracker per email
-    const agents = await sbFetch('agenti_tracker?email=eq.' + encodeURIComponent(user.email) + '&or=(attivo.eq.true,attivo.is.null)');
-    if (!agents || agents.length === 0) return;
-
-    // Auto-login riuscito
-    ME = agents[0];
-    ALL_AGENTS = await getAgents();
-    startApp();
-
-    // Pulisci il token dall'URL senza ricaricare la pagina
-    const cleanUrl = window.location.pathname;
-    window.history.replaceState({}, document.title, cleanUrl);
-  } catch(e) {
-    console.log('Auto-login fallito, mostra login normale:', e);
+    } catch(e) {}
   }
+
+  // 2. Refresh token da localStorage (sessioni precedenti)
+  const savedEmail = localStorage.getItem('tracker_email');
+  const savedRefresh = localStorage.getItem('tracker_refresh_token');
+  if (savedEmail && savedRefresh) {
+    const newToken = await refreshTokenSilente();
+    if (newToken) {
+      const ok = await loginConToken(newToken, savedEmail);
+      if (ok) return;
+    }
+  }
+
+  // 3. Nessun token valido — mostra login manuale
+  // (già visibile di default)
 })();
 
 // ── UPLOAD ALLEGATI ──────────────────────────────────────────────────────────

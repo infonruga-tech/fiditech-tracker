@@ -1992,7 +1992,7 @@ async function saveDeal() {
       
       closeDealModal(); await loadData();
       if (confirm('Trattativa salvata!\n\nAprire il configuratore ' + (PROD[data.prodotto]||'') + ' per questo cliente?')) {
-        window.open(configuratoreUrl, '_blank');
+        window.location.href = configuratoreUrl;
       }
       return;
     }

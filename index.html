@@ -2566,8 +2566,11 @@ function validaSchedaInline(prodotto) {
         if (!gr('si-tipo-int-clima')) mancanti.push('Nuovo impianto o sostituzione (clima)');
         if (!g('si-clima-marca')) mancanti.push('Marca/modello clima');
         if (!g('si-pred')) mancanti.push('Predisposizione esistente');
-        if (!g('si-n-stanze')) mancanti.push('N. stanze');
-        if (!g('si-dist1')) mancanti.push('Distanza split 1');
+        const tipoIntClima = document.querySelector('input[name="si-tipo-int-clima"]:checked')?.value;
+        if (tipoIntClima === 'nuovo') {
+          if (!g('si-n-stanze')) mancanti.push('N. stanze');
+          if (!g('si-dist1')) mancanti.push('Distanza split 1');
+        }
       }
     }
   }
@@ -2999,14 +3002,6 @@ const SCHEDE_HTML = {
     <div class="f-grid" id="grid-cl-misure"><div class="f-row"><label class="f-label">Misure alloggiamento unità esterna <span class="req">*</span></label><input class="f-input" id="si-mis-est" placeholder="Es. 80x30cm terrazzo"></div>
       <div class="f-row"><label class="f-label">Metri da terra unità esterna <span class="req">*</span></label><input class="f-input" id="si-mt-terra" placeholder="Es. 8 mt (se a parete)"></div>
     </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Linea vita sul tetto <span class="req">*</span></label>
-        <select class="f-select" id="si-lv-clima"><option value="">—</option><option>Sì</option><option>No</option><option>Non applicabile</option></select>
-      </div>
-      <div class="f-row"><label class="f-label">Necessità cestello <span class="req">*</span></label>
-        <select class="f-select" id="si-cestello-cl"><option value="">—</option><option>No</option><option>Sì</option></select>
-      </div>
-    </div>
     <div class="scheda-section-title">📎 Documenti</div>
     <div class="scheda-docs-note">Foto: ogni split interno • unità esterna • muro da forare (interno ed esterno)</div>`
 };
@@ -3018,6 +3013,11 @@ function aggiornaCampiSchedaClima(){
     const el = document.getElementById(id);
     if(el) el.style.display = isSost ? 'none' : '';
   });
+  if(isSost){
+    ['si-n-stanze','si-dist1','si-dist2','si-dist3','si-mis-est','si-mt-terra'].forEach(id => {
+      const el = document.getElementById(id); if(el) el.value = '';
+    });
+  }
 }
 
 // Mappa prodotto → scheda
@@ -3088,8 +3088,8 @@ function mostraSchedaEfficienza(tipo) {
   const det = document.getElementById('scheda-efficienza-detail');
   if (!det) return;
   if (tipo === 'caldaia') det.innerHTML = SCHEDE_HTML.efficienza_caldaia;
-  else if (tipo === 'clima') det.innerHTML = SCHEDE_HTML.efficienza_clima;
-  else if (tipo === 'entrambi') det.innerHTML = SCHEDE_HTML.efficienza_caldaia + '<div style="height:1px;background:var(--border);margin:16px 0;"></div>' + SCHEDE_HTML.efficienza_clima;
+  else if (tipo === 'clima') { det.innerHTML = SCHEDE_HTML.efficienza_clima; setTimeout(aggiornaCampiSchedaClima, 50); }
+  else if (tipo === 'entrambi') { det.innerHTML = SCHEDE_HTML.efficienza_caldaia + '<div style="height:1px;background:var(--border);margin:16px 0;"></div>' + SCHEDE_HTML.efficienza_clima; setTimeout(aggiornaCampiSchedaClima, 50); }
 }
 
 // ── BOUNCE ────────────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <!-- Fiditech Sales Tracker v2.1 -->
 <html lang="it">
 <head>
@@ -2568,10 +2568,6 @@ function validaSchedaInline(prodotto) {
         if (!g('si-pred')) mancanti.push('Predisposizione esistente');
         if (!g('si-n-stanze')) mancanti.push('N. stanze');
         if (!g('si-dist1')) mancanti.push('Distanza split 1');
-        if (!g('si-mis-est')) mancanti.push('Misure unità esterna');
-        if (!g('si-mt-terra')) mancanti.push('Metri da terra unità esterna');
-        if (!g('si-lv-clima')) mancanti.push('Linea vita tetto');
-        if (!g('si-cestello-cl')) mancanti.push('Necessità cestello (clima)');
       }
     }
   }
@@ -2985,8 +2981,8 @@ const SCHEDE_HTML = {
     <div class="scheda-section-title">❄ Tipo intervento</div>
     <div class="f-row"><label class="f-label">Tipo intervento <span class="req">*</span></label>
       <div class="radio-row">
-        <label><input type="radio" name="si-tipo-int-clima" value="sostituzione" checked> Sostituzione esistente</label>
-        <label><input type="radio" name="si-tipo-int-clima" value="nuovo"> Nuovo impianto</label>
+        <label><input type="radio" name="si-tipo-int-clima" value="sostituzione" checked onchange="aggiornaCampiSchedaClima()"> Sostituzione esistente</label>
+        <label><input type="radio" name="si-tipo-int-clima" value="nuovo" onchange="aggiornaCampiSchedaClima()"> Nuovo impianto</label>
       </div>
     </div>
     <div class="f-row"><label class="f-label">Marca, modello e kW clima esistente (se presente) <span class="req">*</span></label><input class="f-input" id="si-clima-marca" placeholder="Es. Daikin 12000 BTU oppure Non presente"></div>
@@ -2994,16 +2990,13 @@ const SCHEDE_HTML = {
       <select class="f-select" id="si-pred"><option value="">—</option><option>Sì</option><option>No</option></select>
     </div>
     <div class="scheda-section-title">📐 Caratteristiche installazione</div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">N. stanze da climatizzare <span class="req">*</span></label><input class="f-input" id="si-n-stanze" type="number" placeholder="Es. 3"></div>
+    <div class="f-grid" id="grid-cl-stanze"><div class="f-row"><label class="f-label">N. stanze da climatizzare <span class="req">*</span></label><input class="f-input" id="si-n-stanze" type="number" placeholder="Es. 3"></div>
       <div class="f-row"><label class="f-label">Distanza split 1 / unità esterna <span class="req">*</span></label><input class="f-input" id="si-dist1" placeholder="Es. 5 mt"></div>
     </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Distanza split 2 / unità esterna</label><input class="f-input" id="si-dist2" placeholder="Es. 8 mt (se presente)"></div>
+    <div class="f-grid" id="grid-cl-dist23"><div class="f-row"><label class="f-label">Distanza split 2 / unità esterna</label><input class="f-input" id="si-dist2" placeholder="Es. 8 mt (se presente)"></div>
       <div class="f-row"><label class="f-label">Distanza split 3 / unità esterna</label><input class="f-input" id="si-dist3" placeholder="Es. 12 mt (se presente)"></div>
     </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Misure alloggiamento unità esterna <span class="req">*</span></label><input class="f-input" id="si-mis-est" placeholder="Es. 80x30cm terrazzo"></div>
+    <div class="f-grid" id="grid-cl-misure"><div class="f-row"><label class="f-label">Misure alloggiamento unità esterna <span class="req">*</span></label><input class="f-input" id="si-mis-est" placeholder="Es. 80x30cm terrazzo"></div>
       <div class="f-row"><label class="f-label">Metri da terra unità esterna <span class="req">*</span></label><input class="f-input" id="si-mt-terra" placeholder="Es. 8 mt (se a parete)"></div>
     </div>
     <div class="f-grid">
@@ -3017,6 +3010,15 @@ const SCHEDE_HTML = {
     <div class="scheda-section-title">📎 Documenti</div>
     <div class="scheda-docs-note">Foto: ogni split interno • unità esterna • muro da forare (interno ed esterno)</div>`
 };
+
+function aggiornaCampiSchedaClima(){
+  const isSost = document.querySelector('input[name="si-tipo-int-clima"]:checked')?.value === 'sostituzione';
+  const ids = ['grid-cl-stanze','grid-cl-dist23','grid-cl-misure'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(el) el.style.display = isSost ? 'none' : '';
+  });
+}
 
 // Mappa prodotto → scheda
 const SCHEDA_MAP = {
@@ -3243,3 +3245,4 @@ function checkDuplicato(tipo, val) {
 </script>
 </body>
 </html>
+

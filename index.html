@@ -951,7 +951,7 @@ const CONFIGURATORI = {
   efficienza: 'https://www.ruganicola.it/efficientamento/appv10.html',
   relax:'https://www.ruganicola.it/relax/',
   sibook:     null,
-  nobus:      null, serenno:null, energia:null, tlc:null, fid:null
+  nobus:      'https://www.ruganicola.it/nobus/', serenno:null, energia:null, tlc:null, fid:null
 };
 const PROD_P = {
   fv:'p-fv', fv_pro:'p-fv', illumina:'p-led', led:'p-led',
@@ -1880,7 +1880,7 @@ async function saveDeal() {
     rejection_tags: rejTags || null,
     rejection_note: document.getElementById('f-rejection-note')?.value?.trim() || null,
     scheda_inline: schedaInlineData ? JSON.stringify(schedaInlineData) : null,
-    allegati: null, // allegati caricati su Storage dopo il salvataggio
+    allegati: allegatiCorrente.length > 0 ? JSON.stringify(allegatiCorrente.map(a=>({nome:a.nome,tipo:a.tipo,dim:a.dim,data:a.data}))) : null,
     convenzione: document.getElementById('convenzione-row')?.style.display !== 'none' 
       ? (document.getElementById('f-convenzione')?.checked || false) 
       : false,
@@ -1894,20 +1894,11 @@ async function saveDeal() {
   if (editingDealId) {
     await updateDeal(editingDealId, data);
     await insertLog({agente_id: agenteId, trattativa_id: editingDealId, tipo: 'Aggiornamento trattativa', nota: `${data.client_name} aggiornata`});
-    // Upload nuovi allegati su Supabase Storage
-    if (allegatiCorrente.length > 0) {
-      await uploadAllegatiTrattativa(editingDealId, allegatiCorrente);
-    }
   } else {
     const created = await insertDeal(data);
     const newId = Array.isArray(created) ? created[0]?.id : created?.id;
     await insertLog({agente_id: agenteId, trattativa_id: newId||null, tipo: 'Nuova trattativa', nota: `${data.client_name} — ${PROD[data.prodotto]}`});
     await notifyDVNewDeal({...data, id: newId});
-
-    // Upload allegati su Supabase Storage
-    if (allegatiCorrente.length > 0 && newId) {
-      await uploadAllegatiTrattativa(newId, allegatiCorrente);
-    }
 
     // Per Solare Pro: apri subito la scheda tecnica invece del configuratore
     if (data.prodotto === 'fv_pro') {
@@ -3065,6 +3056,10 @@ function onProdChange() {
     schedaTitle.textContent = '📋 Scheda tecnica — Migliora Solare Residenziale (obbligatoria)';
     schedaContent.innerHTML = SCHEDE_HTML.fv;
     schedaDiv.style.display = 'block';
+  } else if (val === 'nobus') {
+    schedaTitle.textContent = '📋 Nobus Solar Smart — nessuna scheda tecnica richiesta';
+    schedaContent.innerHTML = '<div style="font-size:13px;color:var(--text2);padding:8px 0;">Dopo aver salvato la trattativa, il configuratore Nobus si aprirà automaticamente con i dati del cliente pre-compilati.</div>';
+    schedaDiv.style.display = 'block';
   } else if (val === 'fv_pro') {
     // Per Solare Pro: mostra avviso inline — la scheda si apre dopo il salvataggio della trattativa
     schedaTitle.textContent = '📋 Scheda tecnica Solare Pro — verrà richiesta dopo il salvataggio';
@@ -3190,63 +3185,6 @@ function formatSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024*1024) return (bytes/1024).toFixed(1) + ' KB';
   return (bytes/(1024*1024)).toFixed(1) + ' MB';
-}
-
-async function uploadAllegatiTrattativa(trattativaId, allegati) {
-  const errori = [];
-  for (const a of allegati) {
-    try {
-      // Converti base64 in Blob
-      const base64 = a.data.split(',')[1];
-      const byteChars = atob(base64);
-      const byteArr = new Uint8Array(byteChars.length);
-      for (let i = 0; i < byteChars.length; i++) byteArr[i] = byteChars.charCodeAt(i);
-      const blob = new Blob([byteArr], { type: a.tipo || 'application/octet-stream' });
-
-      const path = trattativaId + '/allegati/' + Date.now() + '_' + a.nome;
-      const res = await fetch(SUPA_URL + '/storage/v1/object/offerte-pdf/' + path, {
-        method: 'POST',
-        headers: {
-          'apikey': SUPA_KEY,
-          'Authorization': 'Bearer ' + getAuthToken(),
-          'Content-Type': a.tipo || 'application/octet-stream',
-          'x-upsert': 'true'
-        },
-        body: blob
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        console.error('Upload fallito per ' + a.nome, err);
-        errori.push(a.nome);
-        continue;
-      }
-
-      const url = SUPA_URL + '/storage/v1/object/public/offerte-pdf/' + path;
-      const d = deals.find(x => x.id === trattativaId);
-
-      // Salva record in allegati_trattative
-      await supaFetch('/rest/v1/allegati_trattative', 'POST', {
-        trattativa_id: trattativaId,
-        nome_file: a.nome,
-        tipo: a.tipo || 'documento',
-        url: url,
-        generato_da: 'upload_manuale',
-        agente_nome: ME.nome || '',
-        cliente_nome: d ? d.client_name : '',
-      });
-
-    } catch(e) {
-      console.error('Errore upload ' + a.nome, e);
-      errori.push(a.nome);
-    }
-  }
-
-  if (errori.length === 0) {
-    toast('Allegati caricati correttamente', 'ok');
-  } else {
-    toast('Errore upload: ' + errori.join(', '), 'warn');
-  }
 }
 
 function handleFileSelect(files) {

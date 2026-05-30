@@ -320,6 +320,10 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
           </select>
         </div>
         <div id="archivio-list"></div>
+        <div style="margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:0 2px">
+          <button class="btn btn-primary" onclick="esportaCSV()" style="font-size:12px">⬇ Esporta CSV</button>
+          <span style="font-size:11px;color:var(--text3)">Esporta le trattative filtrate in Excel / Google Sheets</span>
+        </div>
       </div>
     </div>
 
@@ -951,7 +955,7 @@ const CONFIGURATORI = {
   efficienza: 'https://www.ruganicola.it/efficientamento/appv10.html',
   relax:'https://www.ruganicola.it/relax/',
   sibook:     null,
-  nobus:      'https://www.ruganicola.it/nobus/', serenno:null, energia:null, tlc:null, fid:null
+  nobus:      null, serenno:null, energia:null, tlc:null, fid:null
 };
 const PROD_P = {
   fv:'p-fv', fv_pro:'p-fv', illumina:'p-led', led:'p-led',
@@ -1079,6 +1083,22 @@ async function refreshTokenSilente() {
     window._supaAccessToken = auth.access_token;
     return auth.access_token;
   } catch(e) { return false; }
+}
+
+function showToast(msg, ok=true) {
+  let t = document.getElementById('tracker-toast');
+  if (!t) {
+    t = document.createElement('div');
+    t.id = 'tracker-toast';
+    t.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:9999;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 20px rgba(0,0,0,.3);min-width:260px;display:none';
+    document.body.appendChild(t);
+  }
+  t.textContent = (ok ? '✓ ' : '⚠ ') + msg;
+  t.style.background = ok ? '#0a2a18' : '#1a0a0a';
+  t.style.border = ok ? '1px solid #0d6e41' : '1px solid #8b1a1a';
+  t.style.color = ok ? '#4ade80' : '#f87171';
+  t.style.display = 'block';
+  setTimeout(() => t.style.display = 'none', 3500);
 }
 
 function doLogout() {
@@ -3056,10 +3076,6 @@ function onProdChange() {
     schedaTitle.textContent = '📋 Scheda tecnica — Migliora Solare Residenziale (obbligatoria)';
     schedaContent.innerHTML = SCHEDE_HTML.fv;
     schedaDiv.style.display = 'block';
-  } else if (val === 'nobus') {
-    schedaTitle.textContent = '📋 Nobus Solar Smart — nessuna scheda tecnica richiesta';
-    schedaContent.innerHTML = '<div style="font-size:13px;color:var(--text2);padding:8px 0;">Dopo aver salvato la trattativa, il configuratore Nobus si aprirà automaticamente con i dati del cliente pre-compilati.</div>';
-    schedaDiv.style.display = 'block';
   } else if (val === 'fv_pro') {
     // Per Solare Pro: mostra avviso inline — la scheda si apre dopo il salvataggio della trattativa
     schedaTitle.textContent = '📋 Scheda tecnica Solare Pro — verrà richiesta dopo il salvataggio';
@@ -3229,6 +3245,57 @@ function resetAllegati() {
   renderAllegati();
   const fi = document.getElementById('file-input');
   if (fi) fi.value = '';
+}
+
+function esportaCSV() {
+  // Prende le trattative filtrate dalla vista archivio
+  const q       = (document.getElementById('arch-search')?.value||'').toLowerCase();
+  const esito   = document.getElementById('arch-esito')?.value||'';
+  const prod    = document.getElementById('arch-prodotto')?.value||'';
+  const archiviate = deals.filter(d => d.archiviata || d.stage === 5 || d.stage === -2);
+  const filtered = archiviate.filter(d => {
+    const mq = !q || (d.client_name+d.piva+d.agente?.nome+d.codice_offerta||'').toLowerCase().includes(q);
+    const me = !esito || String(d.stage) === esito;
+    const mp = !prod || d.prodotto === prod;
+    return mq && me && mp;
+  });
+
+  if (!filtered.length) { alert('Nessuna trattativa da esportare con i filtri attuali.'); return; }
+
+  const intestazione = ['N. Offerta','Cliente','P.IVA','Prodotto','Agente','Valore €','Fase','Esito','Data aggiornamento','Zona','Note'];
+  const ESITO_MAP = { '5':'Chiusa vinta', '-2':'Non interessato', '-1':'Persa' };
+  const righe = filtered.map(d => {
+    const ag    = d.agente?.nome || ALL_AGENTS.find(a=>a.id===d.agente_id)?.nome || '';
+    const esito2= ESITO_MAP[String(d.stage)] || STAGES[d.stage] || '';
+    const data  = d.updated_at ? new Date(d.updated_at).toLocaleDateString('it-IT') : '';
+    return [
+      d.codice_offerta||'',
+      (d.client_name||'').replace(/;/g,' '),
+      d.piva||'',
+      PROD[d.prodotto]||d.prodotto||'',
+      ag,
+      d.valore_stimato||0,
+      STAGES[Math.max(0,d.stage)]||'',
+      esito2,
+      data,
+      (d.zona_cliente||'').replace(/;/g,' '),
+      (d.note||'').replace(/;/g,' ').replace(/\n/g,' ').substring(0,100),
+    ];
+  });
+
+  // BOM UTF-8 per Excel italiano
+  const BOM = '\uFEFF';
+  const csv = BOM + [intestazione, ...righe].map(r => r.map(v => '"'+String(v).replace(/"/g,'""')+'"').join(';')).join('\n');
+  const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  const anno = new Date().getFullYear();
+  const filtProd = prod ? '_' + (PROD[prod]||prod).replace(/\s+/g,'') : '';
+  a.download = 'Trattative_Fiditech_' + anno + filtProd + '_' + new Date().toLocaleDateString('it-IT').replace(/\//g,'-') + '.csv';
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('CSV esportato — ' + filtered.length + ' trattative', true);
 }
 
 function checkDuplicato(tipo, val) {

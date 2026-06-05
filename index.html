@@ -854,6 +854,18 @@ html,body{height:100%;background:var(--bg);color:var(--text);font-family:var(--f
 // ============================================================
 const SUPA_URL = 'https://emgfuujluqliuogkyfys.supabase.co';
 
+function estraiBTUdaStringa(testo) {
+  if (!testo) return '';
+  const match = testo.replace(/\./g,'').match(/(\d{4,5})\s*(?:btu)?/i);
+  if (match) {
+    const val = parseInt(match[1]);
+    const validi = [9000,12000,18000,24000];
+    if (validi.includes(val)) return val;
+    return validi.reduce((a,b) => Math.abs(b-val)<Math.abs(a-val) ? b : a);
+  }
+  return '';
+}
+
 function generaCodiceOfferta(prodotto) {
   const prefissi = { fv: 'MS', fv_pro: 'SP', illumina: 'IL', bonus: 'BN',
     efficienza: 'EF', relax: 'RL', sibook: 'AP', energia: 'EN', tlc: 'TL', fid: 'MT' };
@@ -1376,6 +1388,18 @@ function getStatusIndicator(d) {
 }
 
 // ── ALLEGATI ────────────────────────────────────────────────────
+
+function estraiBTUdaStringa(testo) {
+  if (!testo) return '';
+  const match = testo.replace(/\./g,'').match(/(\d{4,5})\s*(?:btu)?/i);
+  if (match) {
+    const val = parseInt(match[1]);
+    const validi = [9000,12000,18000,24000];
+    if (validi.includes(val)) return val;
+    return validi.reduce((a,b) => Math.abs(b-val)<Math.abs(a-val) ? b : a);
+  }
+  return '';
+}
 
 function generaCodiceOfferta(prodotto) {
   const prefissi = { fv: 'MS', fv_pro: 'SP', illumina: 'IL', bonus: 'BN',
@@ -2013,6 +2037,8 @@ async function saveDeal() {
         potenza_esistente: schedaInline?.potenza_esistente || schedaInline?.pot_kw || '',
         tipo_split: schedaInline?.tipo_split || '',
         n_split: schedaInline?.n_split || '',
+        btu_exist: schedaInline?.clima?.marca ? estraiBTUdaStringa(schedaInline.clima.marca) : '',
+        clima_marca_exist: schedaInline?.clima?.marca || '',
         // Dati energetici per configuratore solare
         f1: schedaInline?.f1 || '',
         f2: schedaInline?.f2 || '',

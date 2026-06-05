@@ -970,7 +970,7 @@ const CONFIGURATORI = {
   fv_pro:     'https://www.ruganicola.it/solar-pro/index.html',
   illumina:   'https://www.ruganicola.it/illumina/',
   bonus:      'https://www.ruganicola.it/bonus/',
-  efficienza: 'https://www.ruganicola.it/efficientamento/appv10.html',
+  efficienza: 'https://www.ruganicola.it/efficientamento/appv11.html',
   relax:'https://www.ruganicola.it/relax/',
   sibook:     null,
   nobus:      'https://www.ruganicola.it/nobus/', serenno:null, energia:null, tlc:null, fid:null
@@ -2042,8 +2042,12 @@ async function saveDeal() {
         potenza_esistente: schedaInline?.potenza_esistente || schedaInline?.pot_kw || '',
         tipo_split: schedaInline?.tipo_split || '',
         n_split: schedaInline?.n_split || '',
-        btu_exist: schedaInline?.clima?.marca ? estraiBTUdaStringa(schedaInline.clima.marca) : '',
+        // Dati clima: tipo intervento + BTU esistente
+        tipo_int_clima: schedaInline?.clima?.tipo_int || '',
+        btu_exist: schedaInline?.clima?.btu_exist || (schedaInline?.clima?.marca ? estraiBTUdaStringa(schedaInline.clima.marca) : ''),
         clima_marca_exist: schedaInline?.clima?.marca || '',
+        // Campagna: per efficienza clima usa sempre fresca_estate
+        campagna: (data.prodotto === 'efficienza' && (schedaInline?.tipo === 'clima' || schedaInline?.tipo === 'entrambi')) ? 'fresca_estate' : '',
         // Dati energetici per configuratore solare
         f1: schedaInline?.f1 || '',
         f2: schedaInline?.f2 || '',
@@ -2694,6 +2698,7 @@ function raccogliSchedaInline(prodotto) {
     } : null;
     const clim = tipo === 'clima' || tipo === 'entrambi' ? {
       tipo_int: gr('si-tipo-int-clima'), marca: g('si-clima-marca'),
+      btu_exist: g('si-btu-exist') || '',
       pred: g('si-pred'), n_stanze: g('si-n-stanze'),
       dist1: g('si-dist1'), dist2: g('si-dist2'), dist3: g('si-dist3'),
       mis_est: g('si-mis-est'), mt_terra: g('si-mt-terra'),
@@ -3060,7 +3065,16 @@ const SCHEDE_HTML = {
         <label><input type="radio" name="si-tipo-int-clima" value="nuovo" onchange="aggiornaCampiSchedaClima()"> Nuovo impianto</label>
       </div>
     </div>
-    <div class="f-row"><label class="f-label">Marca, modello e BTU clima esistente <span class="req">*</span></label><input class="f-input" id="si-clima-marca" placeholder="Es. Daikin 12000 BTU oppure Non presente"></div>
+    <div class="f-row"><label class="f-label">Marca, modello clima esistente <span class="req">*</span></label><input class="f-input" id="si-clima-marca" placeholder="Es. Daikin Ururu Sarara oppure Non presente"></div>
+    <div class="f-row"><label class="f-label">BTU clima esistente <span class="req">*</span></label>
+      <select class="f-select" id="si-btu-exist">
+        <option value="">— Seleziona BTU —</option>
+        <option value="9000">9.000 BTU</option>
+        <option value="12000">12.000 BTU</option>
+        <option value="18000">18.000 BTU</option>
+        <option value="24000">24.000 BTU</option>
+      </select>
+    </div>
     <div class="f-row"><label class="f-label">Necessità cestello <span class="req">*</span></label>
       <select class="f-select" id="si-cestello-c"><option value="">—</option><option>No</option><option>Sì</option></select>
     </div>

@@ -2020,7 +2020,7 @@ async function saveDeal() {
         citta: schedaInline?.comune || schedaInline?.citta || (data.zona_cliente||'').split(' ').find(p=>p.length>3&&!p.startsWith('('))||'',
         cap: schedaInline?.cap || (data.zona_cliente||'').match(/\b\d{5}\b/)?.[0] || '',
         provincia: provinciaCliente || schedaInline?.prov || (data.zona_cliente||'').match(/\(([A-Z]{2})\)/)?.[1] || '',
-        agente: ME.nome||'',
+        agente: ['operatore','resp_operatori'].includes(ME.ruolo) ? 'Agente Fiditech' : (ME.nome||''),
         agente_email: agenteEmail,
         id: newId||'',
         trattativa_id: newId||'',

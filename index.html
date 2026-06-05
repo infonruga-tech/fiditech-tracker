@@ -2029,7 +2029,12 @@ async function saveDeal() {
         jwt: sessionStorage.getItem('sb_access_token') || sessionStorage.getItem('sb_jwt') || '',
         agente_email: agenteEmail,
         agente_nome: encodeURIComponent(ME.nome||''),
-        ruolo: ['operatore','resp_operatori'].includes(ME.ruolo) ? 'operatore' : 'agente',
+        ruolo: (()=>{
+          // Cerca il ruolo dell'agente assegnato alla trattativa
+          const agenteDeal = ALL_AGENTS.find(a => a.id === (data.agente_id || ME.id));
+          const ruoloDeal = agenteDeal ? agenteDeal.ruolo : ME.ruolo;
+          return ['operatore','resp_operatori'].includes(ruoloDeal) ? 'operatore' : 'agente';
+        })(),
         tipo: data.prodotto === 'efficienza' ? (schedaInline?.tipo || 'caldaia') : '',
         mq: schedaInline?.mq || schedaInline?.caldaia?.mq || '',
         n_stanze: schedaInline?.n_stanze || schedaInline?.clima?.n_stanze || '',

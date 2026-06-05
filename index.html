@@ -2586,32 +2586,33 @@ function validaSchedaInline(prodotto) {
     if (!tipo) { mancanti.push('Tipo intervento (caldaia/clima/entrambi)'); }
     else {
       if (tipo === 'caldaia' || tipo === 'entrambi') {
-        if (!gr('si-tipo-int-cald')) mancanti.push('Nuovo impianto o sostituzione (caldaia)');
+        if (!gr('si-tipo-int-cald')) mancanti.push('Tipo intervento caldaia');
         if (!g('si-cald-marca')) mancanti.push('Marca/modello caldaia');
         if (!g('si-cald-pos')) mancanti.push('Posizione caldaia');
         if (!g('si-fumi')) mancanti.push('Tipo scarico fumi');
-        if (!g('si-alt-fumi')) mancanti.push('Altezza scarico fumi');
-        if (!g('si-cond-canna')) mancanti.push('Canna fumaria a condensazione');
-        if (!g('si-incam')) mancanti.push('Incamiciamento');
         if (!g('si-condensa')) mancanti.push('Distanza scarico condensa');
         if (!g('si-pend')) mancanti.push('Pendenza condensa');
-        if (!g('si-valvole')) mancanti.push('Valvole di zona');
-        if (!g('si-n-termo')) mancanti.push('N. termosifoni');
-        if (!g('si-pavim')) mancanti.push('Impianto a pavimento');
-        if (!g('si-ghisa')) mancanti.push('N. termosifoni in ghisa');
-        if (!g('si-monotubo')) mancanti.push('Valvole monotubo');
-        if (!g('si-areaz')) mancanti.push('Areazione stanza');
-        if (!g('si-mq')) mancanti.push('Metratura appartamento');
-        if (!g('si-cestello-c')) mancanti.push('Necessità cestello (caldaia)');
+        const tipoIntCald = document.querySelector('input[name="si-tipo-int-cald"]:checked')?.value;
+        if (tipoIntCald === 'nuovo') {
+          if (!g('si-valvole')) mancanti.push('Valvole di zona');
+          if (!g('si-n-termo')) mancanti.push('N. termosifoni');
+          if (!g('si-pavim')) mancanti.push('Impianto a pavimento');
+          if (!g('si-ghisa')) mancanti.push('N. termosifoni in ghisa');
+          if (!g('si-monotubo')) mancanti.push('Valvole monotubo');
+          if (!g('si-areaz')) mancanti.push('Areazione stanza');
+          if (!g('si-mq')) mancanti.push('Metratura appartamento');
+        }
       }
       if (tipo === 'clima' || tipo === 'entrambi') {
-        if (!gr('si-tipo-int-clima')) mancanti.push('Nuovo impianto o sostituzione (clima)');
-        if (!g('si-clima-marca')) mancanti.push('Marca/modello clima');
-        if (!g('si-pred')) mancanti.push('Predisposizione esistente');
+        if (!gr('si-tipo-int-clima')) mancanti.push('Tipo intervento clima');
+        if (!g('si-clima-marca')) mancanti.push('Marca/modello clima esistente');
+        if (!g('si-cestello-c')) mancanti.push('Necessità cestello (clima)');
         const tipoIntClima = document.querySelector('input[name="si-tipo-int-clima"]:checked')?.value;
         if (tipoIntClima === 'nuovo') {
-          if (!g('si-n-stanze')) mancanti.push('N. stanze');
+          if (!g('si-n-stanze')) mancanti.push('N. stanze da climatizzare');
           if (!g('si-dist1')) mancanti.push('Distanza split 1');
+          if (!g('si-mis-est')) mancanti.push('Misure unità esterna');
+          if (!g('si-mt-terra')) mancanti.push('Metri da terra unità esterna');
         }
       }
     }
@@ -2961,8 +2962,8 @@ const SCHEDE_HTML = {
     <div class="scheda-section-title">🔧 Tipo intervento</div>
     <div class="f-row"><label class="f-label">Tipo intervento <span class="req">*</span></label>
       <div class="radio-row">
-        <label><input type="radio" name="si-tipo-int-cald" value="sostituzione" checked> Sostituzione vecchia caldaia</label>
-        <label><input type="radio" name="si-tipo-int-cald" value="nuovo"> Nuovo impianto</label>
+        <label><input type="radio" name="si-tipo-int-cald" value="sostituzione" checked onchange="aggiornaCampiSchedaCaldaia()"> Sostituzione vecchia caldaia</label>
+        <label><input type="radio" name="si-tipo-int-cald" value="nuovo" onchange="aggiornaCampiSchedaCaldaia()"> Nuovo impianto</label>
       </div>
     </div>
     <div class="f-row"><label class="f-label">Marca, modello e kW caldaia esistente <span class="req">*</span></label><input class="f-input" id="si-cald-marca" placeholder="Es. Baxi Nuvola 3 24kW"></div>
@@ -2979,44 +2980,42 @@ const SCHEDE_HTML = {
       <div class="f-row"><label class="f-label">Tipo scarico fumi <span class="req">*</span></label>
         <select class="f-select" id="si-fumi"><option value="">—</option><option>Canna fumaria singola</option><option>Scarico in facciata</option><option>Da predisporre</option></select>
       </div>
-      <div class="f-row"><label class="f-label">Altezza scarico in facciata (min 2,10mt) <span class="req">*</span></label><input class="f-input" id="si-alt-fumi" placeholder="Es. 2,30 mt"></div>
-    </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Canna fumaria a condensazione <span class="req">*</span></label>
-        <select class="f-select" id="si-cond-canna"><option value="">—</option><option>Sì</option><option>No</option><option>Da verificare</option></select>
-      </div>
-      <div class="f-row"><label class="f-label">Incamiciamento necessario <span class="req">*</span></label>
-        <select class="f-select" id="si-incam"><option value="">—</option><option>Sì</option><option>No</option></select>
-      </div>
-    </div>
-    <div class="f-grid">
       <div class="f-row"><label class="f-label">Distanza scarico condensa <span class="req">*</span></label><input class="f-input" id="si-condensa" placeholder="Es. 3 mt"></div>
-      <div class="f-row"><label class="f-label">Pendenza condensa sufficiente <span class="req">*</span></label>
-        <select class="f-select" id="si-pend"><option value="">—</option><option>Sì</option><option>No — serve pompa rilancio</option></select>
-      </div>
     </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Valvole di zona presenti <span class="req">*</span></label>
-        <select class="f-select" id="si-valvole"><option value="">—</option><option>Sì</option><option>No</option></select>
-      </div>
-      <div class="f-row"><label class="f-label">N. termosifoni <span class="req">*</span></label><input class="f-input" id="si-n-termo" type="number" placeholder="Es. 8"></div>
+    <div class="f-row"><label class="f-label">Pendenza condensa sufficiente <span class="req">*</span></label>
+      <select class="f-select" id="si-pend"><option value="">—</option><option>Sì</option><option>No — serve pompa rilancio</option></select>
     </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Impianto a pavimento <span class="req">*</span></label>
-        <select class="f-select" id="si-pavim"><option value="">—</option><option>Sì</option><option>No</option></select>
+    <div id="cald-campi-nuovo" style="display:none;">
+      <div class="scheda-section-title">🏗️ Dati nuovo impianto</div>
+      <div class="f-grid">
+        <div class="f-row"><label class="f-label">Altezza scarico in facciata (min 2,10mt)</label><input class="f-input" id="si-alt-fumi" placeholder="Es. 2,30 mt"></div>
+        <div class="f-row"><label class="f-label">Canna fumaria a condensazione</label>
+          <select class="f-select" id="si-cond-canna"><option value="">—</option><option>Sì</option><option>No</option><option>Da verificare</option></select>
+        </div>
       </div>
-      <div class="f-row"><label class="f-label">N. termosifoni in ghisa <span class="req">*</span></label><input class="f-input" id="si-ghisa" type="number" placeholder="Es. 2"></div>
-    </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Valvole termostatiche monotubo (n.) <span class="req">*</span></label><input class="f-input" id="si-monotubo" type="number" placeholder="Es. 0"></div>
-      <div class="f-row"><label class="f-label">Foro areazione stanza <span class="req">*</span></label>
-        <select class="f-select" id="si-areaz"><option value="">—</option><option>Presente</option><option>Assente</option></select>
+      <div class="f-grid">
+        <div class="f-row"><label class="f-label">Incamiciamento necessario</label>
+          <select class="f-select" id="si-incam"><option value="">—</option><option>Sì</option><option>No</option></select>
+        </div>
+        <div class="f-row"><label class="f-label">Valvole di zona presenti</label>
+          <select class="f-select" id="si-valvole"><option value="">—</option><option>Sì</option><option>No</option></select>
+        </div>
       </div>
-    </div>
-    <div class="f-grid">
-      <div class="f-row"><label class="f-label">Metratura appartamento mq <span class="req">*</span></label><input class="f-input" id="si-mq" type="number" placeholder="Es. 90"></div>
-      <div class="f-row"><label class="f-label">Necessità cestello <span class="req">*</span></label>
-        <select class="f-select" id="si-cestello-c"><option value="">—</option><option>No</option><option>Sì</option></select>
+      <div class="f-grid">
+        <div class="f-row"><label class="f-label">N. termosifoni</label><input class="f-input" id="si-n-termo" type="number" placeholder="Es. 8"></div>
+        <div class="f-row"><label class="f-label">Impianto a pavimento</label>
+          <select class="f-select" id="si-pavim"><option value="">—</option><option>Sì</option><option>No</option></select>
+        </div>
+      </div>
+      <div class="f-grid">
+        <div class="f-row"><label class="f-label">N. termosifoni in ghisa</label><input class="f-input" id="si-ghisa" type="number" placeholder="Es. 2"></div>
+        <div class="f-row"><label class="f-label">Valvole termostatiche monotubo (n.)</label><input class="f-input" id="si-monotubo" type="number" placeholder="Es. 0"></div>
+      </div>
+      <div class="f-grid">
+        <div class="f-row"><label class="f-label">Foro areazione stanza</label>
+          <select class="f-select" id="si-areaz"><option value="">—</option><option>Presente</option><option>Assente</option></select>
+        </div>
+        <div class="f-row"><label class="f-label">Metratura appartamento mq</label><input class="f-input" id="si-mq" type="number" placeholder="Es. 90"></div>
       </div>
     </div>
     <div class="scheda-section-title">📎 Documenti</div>
@@ -3030,34 +3029,45 @@ const SCHEDE_HTML = {
         <label><input type="radio" name="si-tipo-int-clima" value="nuovo" onchange="aggiornaCampiSchedaClima()"> Nuovo impianto</label>
       </div>
     </div>
-    <div class="f-row"><label class="f-label">Marca, modello e kW clima esistente (se presente) <span class="req">*</span></label><input class="f-input" id="si-clima-marca" placeholder="Es. Daikin 12000 BTU oppure Non presente"></div>
-    <div class="f-row"><label class="f-label">Predisposizione esistente? <span class="req">*</span></label>
-      <select class="f-select" id="si-pred"><option value="">—</option><option>Sì</option><option>No</option></select>
+    <div class="f-row"><label class="f-label">Marca, modello e BTU clima esistente <span class="req">*</span></label><input class="f-input" id="si-clima-marca" placeholder="Es. Daikin 12000 BTU oppure Non presente"></div>
+    <div class="f-row"><label class="f-label">Necessità cestello <span class="req">*</span></label>
+      <select class="f-select" id="si-cestello-c"><option value="">—</option><option>No</option><option>Sì</option></select>
     </div>
-    <div class="scheda-section-title">📐 Caratteristiche installazione</div>
-    <div class="f-grid" id="grid-cl-stanze"><div class="f-row"><label class="f-label">N. stanze da climatizzare <span class="req">*</span></label><input class="f-input" id="si-n-stanze" type="number" placeholder="Es. 3"></div>
-      <div class="f-row"><label class="f-label">Distanza split 1 / unità esterna <span class="req">*</span></label><input class="f-input" id="si-dist1" placeholder="Es. 5 mt"></div>
-    </div>
-    <div class="f-grid" id="grid-cl-dist23"><div class="f-row"><label class="f-label">Distanza split 2 / unità esterna</label><input class="f-input" id="si-dist2" placeholder="Es. 8 mt (se presente)"></div>
-      <div class="f-row"><label class="f-label">Distanza split 3 / unità esterna</label><input class="f-input" id="si-dist3" placeholder="Es. 12 mt (se presente)"></div>
-    </div>
-    <div class="f-grid" id="grid-cl-misure"><div class="f-row"><label class="f-label">Misure alloggiamento unità esterna <span class="req">*</span></label><input class="f-input" id="si-mis-est" placeholder="Es. 80x30cm terrazzo"></div>
-      <div class="f-row"><label class="f-label">Metri da terra unità esterna <span class="req">*</span></label><input class="f-input" id="si-mt-terra" placeholder="Es. 8 mt (se a parete)"></div>
+    <div id="clima-campi-nuovo" style="display:none;">
+      <div class="scheda-section-title">📐 Caratteristiche nuovo impianto</div>
+      <div class="f-row"><label class="f-label">Predisposizione esistente?</label>
+        <select class="f-select" id="si-pred"><option value="">—</option><option>Sì</option><option>No</option></select>
+      </div>
+      <div class="f-grid" id="grid-cl-stanze">
+        <div class="f-row"><label class="f-label">N. stanze da climatizzare <span class="req">*</span></label><input class="f-input" id="si-n-stanze" type="number" placeholder="Es. 3"></div>
+        <div class="f-row"><label class="f-label">Distanza split 1 / unità esterna <span class="req">*</span></label><input class="f-input" id="si-dist1" placeholder="Es. 5 mt"></div>
+      </div>
+      <div class="f-grid" id="grid-cl-dist23">
+        <div class="f-row"><label class="f-label">Distanza split 2 / unità esterna</label><input class="f-input" id="si-dist2" placeholder="Es. 8 mt (se presente)"></div>
+        <div class="f-row"><label class="f-label">Distanza split 3 / unità esterna</label><input class="f-input" id="si-dist3" placeholder="Es. 12 mt (se presente)"></div>
+      </div>
+      <div class="f-grid" id="grid-cl-misure">
+        <div class="f-row"><label class="f-label">Misure alloggiamento unità esterna <span class="req">*</span></label><input class="f-input" id="si-mis-est" placeholder="Es. 80x30cm terrazzo"></div>
+        <div class="f-row"><label class="f-label">Metri da terra unità esterna <span class="req">*</span></label><input class="f-input" id="si-mt-terra" placeholder="Es. 8 mt (se a parete)"></div>
+      </div>
     </div>
     <div class="scheda-section-title">📎 Documenti</div>
     <div class="scheda-docs-note">Foto: ogni split interno • unità esterna • muro da forare (interno ed esterno)</div>`
 };
 
+function aggiornaCampiSchedaCaldaia(){
+  const isSost = document.querySelector('input[name="si-tipo-int-cald"]:checked')?.value === 'sostituzione';
+  const el = document.getElementById('cald-campi-nuovo');
+  if(el) el.style.display = isSost ? 'none' : 'block';
+}
+
 function aggiornaCampiSchedaClima(){
   const isSost = document.querySelector('input[name="si-tipo-int-clima"]:checked')?.value === 'sostituzione';
-  const ids = ['grid-cl-stanze','grid-cl-dist23','grid-cl-misure'];
-  ids.forEach(id => {
-    const el = document.getElementById(id);
-    if(el) el.style.display = isSost ? 'none' : '';
-  });
+  const el = document.getElementById('clima-campi-nuovo');
+  if(el) el.style.display = isSost ? 'none' : 'block';
   if(isSost){
-    ['si-n-stanze','si-dist1','si-dist2','si-dist3','si-mis-est','si-mt-terra'].forEach(id => {
-      const el = document.getElementById(id); if(el) el.value = '';
+    ['si-n-stanze','si-dist1','si-dist2','si-dist3','si-mis-est','si-mt-terra','si-pred'].forEach(id => {
+      const el2 = document.getElementById(id); if(el2) el2.value = '';
     });
   }
 }

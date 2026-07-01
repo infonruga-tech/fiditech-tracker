@@ -2034,8 +2034,15 @@ async function saveDeal() {
       
       closeDealModal(); await loadData();
       if (confirm('Trattativa salvata!\n\nAprire il configuratore ' + (PROD[data.prodotto]||'') + ' per questo cliente?')) {
-        const isBO = ME.ruolo === 'resp_backoffice' || ME.ruolo === 'backoffice';
-        if (!isBO) window.location.href = configuratoreUrl;
+        // Apre il configuratore in NUOVA scheda per TUTTI i ruoli (incluso backoffice/Mirandini).
+        // L'OK del confirm è un gesto utente: window.open è consentito (no blocco popup).
+        // Fallback ad anchor click se il browser dovesse bloccare la nuova finestra.
+        const w = window.open(configuratoreUrl, '_blank', 'noopener');
+        if (!w) {
+          const a = document.createElement('a');
+          a.href = configuratoreUrl; a.target = '_blank'; a.rel = 'noopener';
+          document.body.appendChild(a); a.click(); a.remove();
+        }
       }
       return;
     }

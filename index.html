@@ -2714,7 +2714,10 @@ async function sendEmail(to, toName, subject, bodyHtml) {
       headers: {
         'Content-Type': 'application/json',
         'apikey': SUPA_KEY,
-        'Authorization': 'Bearer ' + getAuthToken(),
+        // Notifica-only: usa SEMPRE la chiave anon (l'edge function 'send-email' la accetta,
+        // come fanno i configuratori). Col token utente il backoffice (resp_backoffice/segnalatore)
+        // veniva rifiutato con 403; la notifica non ha bisogno dell'auth dell'utente.
+        'Authorization': 'Bearer ' + SUPA_KEY,
       },
       body: JSON.stringify({to, toName, subject, bodyHtml})
     });
